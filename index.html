@@ -144,9 +144,12 @@ nav.bottom button[aria-current="page"]{color:var(--accent);background:var(--acce
 /* historie */
 .hist summary{list-style:none;cursor:pointer}
 .hist summary::-webkit-details-marker{display:none}
-.hl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;margin-top:10px;font-size:15px;font-variant-numeric:tabular-nums}
+.hl{display:flex;flex-direction:column;margin-top:10px;font-size:15px;font-variant-numeric:tabular-nums}
+/* název cviku nahoře, pod ním odcvičené série */
+.hx{display:flex;flex-direction:column;gap:6px;padding-block:8px;border-top:1px solid var(--line)}
 .hl .n{font-weight:600}
-.hl .v{color:var(--muted);text-align:right}
+.hl .v{display:flex;flex-wrap:wrap;gap:6px}
+.st{white-space:nowrap;background:var(--bg);border:1px solid var(--line);border-radius:6px;padding:3px 8px;font-size:14px;color:var(--fg)}
 
 /* editor */
 .ed-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding-block:10px;border-bottom:1px solid var(--line)}
@@ -542,7 +545,7 @@ function renderHistory(){
       <div class="row"><span class="chip">${fmtD(w.start)}</span><h2 class="grow">${esc(w.name)}</h2>${w.sample?'<span class="sub">ukázka</span>':''}</div>
       <div class="stats" style="margin:10px 0 0"><div><b>${Math.round((w.end-w.start)/60000)}</b><span>min</span></div>
       <div><b>${w.sets.filter(s=>s.type==='W').length}</b><span>sérií</span></div><div><b>${fmtVol(vol(w.sets))}</b><span>objem</span></div></div></summary>
-      <div class="hl">${exIds.map(id=>`<span class="n">${esc(exName(id))}</span><span class="v">${w.sets.filter(s=>s.exId===id&&s.type==='W').map(fmtSet).join(', ')}</span>`).join('')}</div>
+      <div class="hl">${exIds.map(id=>`<div class="hx"><span class="n">${esc(exName(id))}</span><span class="v">${w.sets.filter(s=>s.exId===id&&s.type==='W').map(x=>`<span class="st">${esc(fmtSet(x))}</span>`).join('')}</span></div>`).join('')}</div>
       ${!w.sample&&S.routines.some(r=>r.id===w.routineId)?`<div class="row" style="margin-top:12px"><button class="btn small" type="button" data-act="updOpen" data-id="${w.id}">Aktualizovat rutinu podle tréninku</button></div>`:''}
     </details>`}).join('')}
   ${ws.length?`<button class="btn danger wide" type="button" data-act="clearHistory">${ui.confirm==='clearHistory'?'Opravdu smazat celou historii?':'Smazat historii'}</button>`:''}
