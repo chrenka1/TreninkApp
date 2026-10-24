@@ -192,40 +192,10 @@ const rpeTxt=v=>v?String(v).replace('.',','):'';
 const defRows=reps=>[{type:'W',reps},{type:'W',reps}];
 
 /* ---------- ukázková data ---------- */
+/* nová instalace: žádné rutiny ani tréninky */
 function seed(){
-  const plan=[
-    ['Push A',[['Bench press (osa)',80],['Tlak nad hlavu (osa)',50],['Šikmý tlak s jednoručkami',28],['Boční zdvihy s jednoručkami',12,'10–15',[15,15]],['Triceps na kladce',30]]],
-    ['Pull A',[['Stahování kladky (lat pulldown)',65],['Přítahy jednoruček s oporou hrudi',30],['Face pull',25,'10–15'],['Přítahy kladky vsedě – lano k hrudi',55],['Bicepsový zdvih',14]]],
-    ['Nohy',[['Dřep',100],['Rumunský mrtvý tah',90],['Lýtka ve stoji',80,'10–15']]],
-    ['Push B',[['Tlak s jednoručkami',32],['Tlaky na šikmém stroji',60],['Dipy na bradlech',0],['Boční zdvihy na kladce',10,'10–15'],['Bench press úzkým úchopem',70]]],
-    ['Pull B',[['Stahování kladky úzkým úchopem',60],['Přítahy kladky vsedě – V úchop',60],['Vysoký přítah kladky jednoruč',20],['Reverse fly',8,'10–15'],['Kelso shrug',24],['EZ bicepsový zdvih',30]]]
-  ];
-  const lastDates={'Push A':'2026-10-19','Pull A':'2026-10-14','Nohy':'2026-10-15','Push B':'2026-10-16','Pull B':'2026-10-18'};
-  const S={exercises:[],routines:[],workouts:[],active:null,sample:true};
-  plan.forEach(([name,items])=>{
-    const r={id:uid(),name,items:[]};
-    items.forEach(([en,kg,reps,wr])=>{
-      const ex={id:uid(),name:en};S.exercises.push(ex);
-      r.items.push({exId:ex.id,rest:120,note:'',rows:defRows(reps||'6–10'),kg,wr,rng:reps||'6–10'});
-    });
-    S.routines.push(r);
-  });
-  S.routines[0].items[3].note='Lokty lehce pokrčené, zdvih do výše ramen, dolů pomalu.';
-  const mk=(r,date,f)=>{
-    const st=new Date(date+'T17:30:00').getTime();
-    const sets=[];
-    r.items.forEach(it=>{
-      const k=it.kg*f, top=it.rng==='10–15'?[13,12]:[8,7], wr=f===1&&it.wr?it.wr:top;
-      sets.push({exId:it.exId,type:'W',kg:r25(k),reps:wr[0],rpe:'9',done:true});
-      sets.push({exId:it.exId,type:'W',kg:r25(k),reps:wr[1],rpe:'9.5',done:true});
-    });
-    return {id:uid(),routineId:r.id,name:r.name,start:st,end:st+42*60000,sets,sample:true};
-  };
-  S.routines.forEach(r=>S.workouts.push(mk(r,lastDates[r.name],1)));
-  S.workouts.push(mk(S.routines[1],'2026-10-07',.95));
-  S.routines.forEach(r=>r.items.forEach(it=>{delete it.kg;delete it.wr;delete it.rng}));
-  S.workouts.sort((a,b)=>b.start-a.start);
-  return S;
+  return {exercises:[],routines:[],workouts:[],active:null,
+    planV:3,repsInt:true,restV:1,namesV:7,ssV:1,delInact:1,histClr:1,noAct:true};
 }
 function migrate(S){
   S.routines.forEach(r=>{delete r.day;r.items.forEach(it=>{
@@ -236,121 +206,8 @@ function migrate(S){
 }
 function load(){try{const v=localStorage.getItem(KEY);return v?migrate(JSON.parse(v)):null}catch(e){return null}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
-/* ---------- plán PPL v2 (Push / Pull / Legs A–B) ---------- */
-const PLAN_V=3;
-/* [název, aktivační série, pracovní série, opakování, pauza s, poznámka] */
-const PLAN=[
- ['Push A',[
-  ['Bench press (osa)',2,4,'5–10',150,'Lopatky stažené, osa na dolní část hrudníku, lokty 45–70° od těla. Cvič v kleci s jističi.'],
-  ['Tlak nad hlavu s jednoručkami',1,3,'5–8',120,''],
-  ['Šikmý tlak s jednoručkami',1,3,'6–10',120,''],
-  ['Boční zdvihy s jednoručkami',0,3,'10–15',75,'Lokty lehce pokrčené, zdvih do výše ramen, dolů pomalu.'],
-  ['Triceps na kladce',0,3,'8–12',75,'']]],
- ['Pull A',[
-  ['Stahování kladky (lat pulldown)',2,3,'6–12',120,'Pokud kladka nedovolí plné natažení, cvič vkleče před strojem.'],
-  ['Přítahy kladky vsedě – rovná tyč',1,3,'8–10',120,'Širší úchop, lokty od těla 45–60°, tahej k dolní části hrudníku, nahoře stáhni lopatky a vydrž 1 s.'],
-  ['Bicepsový zdvih',1,3,'7–10',45,'Supersérie s Face pull – bez pauzy přejdi na face pull.'],
-  ['Face pull',0,3,'12–15',90,'Supersérie s bicepsovým zdvihem. Lano k obličeji, lokty vysoko, ruce na konci od sebe, stáhni lopatky.'],
-  ['Bicepsový zdvih na šikmé lavici',0,3,'8–12',90,'Lavice 45–60°, paže visí za tělem, dole nech biceps plně natáhnout.']]],
- ['Legs A',[
-  ['Lýtka ve stoji',1,3,'8–12',75,'Plný rozsah, dole pauza 1–2 s v natažení.'],
-  ['Leg press',2,3,'8–12',150,'Pánev zůstává opřená, kolena nahoře nepropínej.'],
-  ['Rumunský mrtvý tah',1,3,'6–10',150,'Ne do selhání kvůli zádům. Pánev dozadu, záda rovná, osa těsně podél nohou.'],
-  ['Předkopávání',0,2,'10–15',30,'Supersérie se zakopáváním vsedě.'],
-  ['Zakopávání vsedě',0,2,'10–12',90,'Supersérie s předkopáváním.'],
-  ['Lýtka vsedě',0,2,'12–15',30,'Supersérie s bočními zdvihy. Dole pauza 1–2 s.'],
-  ['Boční zdvihy s jednoručkami',0,3,'12–20',75,'Supersérie s lýtky vsedě. Lehčí váha.']]],
- ['Push B',[
-  ['Tlak s jednoručkami',2,4,'7–12',150,''],
-  ['Dipy na bradlech',1,3,'7–10',120,'Se zátěží.'],
-  ['Tlak nad hlavu na stroji',1,3,'7–10',120,''],
-  ['Boční zdvihy na kladce',0,3,'10–15',75,'Jednoruč.'],
-  ['Triceps nad hlavou na kladce',0,3,'10–15',75,'Zády ke kladce, lano za hlavou, lokty nahoru a u sebe. Dole nech triceps natáhnout. Alternativa: francouzský tlak s jednoručkou vsedě.']]],
- ['Pull B',[
-  ['Shyby úzkým / neutrálním úchopem',2,3,'6–10',150,'Dole plně propnout paže. Pokud jich nezvládneš 6, použij asistovaný stroj nebo gumu.'],
-  ['Přítahy kladky vsedě – V úchop',1,3,'8–12',120,''],
-  ['Přítahy jednoruček s oporou hrudi',0,2,'8–12',90,'Šikmá lavice 30–45°, lokty od těla, nahoře stáhni lopatky a vydrž 1 s.'],
-  ['EZ bicepsový zdvih',1,3,'7–10',45,'Supersérie s Reverse fly.'],
-  ['Reverse fly',0,3,'10–15',90,'Supersérie s EZ zdvihem. Důraz na stahování lopatek.'],
-  ['Kladivový zdvih',0,2,'10–12',75,'']]],
- ['Legs B',[
-  ['Lýtka vsedě',1,3,'12–20',75,'Dole pauza 1–2 s v natažení.'],
-  ['Bulharský dřep',1,2,'8–10',120,'Zadní noha na lavici, jednoručky v rukou. Opakování na každou nohu.'],
-  ['Hyperextenze 45°',0,3,'10–15',90,'Ohýbej se v kyčlích, ne v bedrech. Jednoručka na hrudi.'],
-  ['Předkopávání',0,2,'12–15',30,'Supersérie se zakopáváním vsedě.'],
-  ['Zakopávání vsedě',0,2,'8–12',90,'Supersérie s předkopáváním.'],
-  ['Lýtka na leg pressu',0,2,'10–15',30,'Supersérie s bočními zdvihy na kladce.'],
-  ['Boční zdvihy na kladce',0,3,'12–20',75,'Supersérie s lýtky na leg pressu. Lehčí váha.']]]
-];
-
-/* max RPE podle rutiny a cviku: těžké volné váhy níž, stroje/kladky/izolace do selhání */
-const MAXRPE={
- 'Push A':{'Bench press (osa)':'8','Tlak nad hlavu s jednoručkami':'8–9','Šikmý tlak s jednoručkami':'8–9'},
- 'Legs A':{'Leg press':'8–9','Rumunský mrtvý tah':'8','Boční zdvihy s jednoručkami':'8'},
- 'Push B':{'Tlak s jednoručkami':'8–9','Dipy na bradlech':'8'},
- 'Pull B':{'Shyby úzkým / neutrálním úchopem':'8–9'},
- 'Legs B':{'Bulharský dřep':'8–9','Boční zdvihy na kladce':'8'}
-};
-const maxRpe=(r,en)=>(MAXRPE[r]&&MAXRPE[r][en])||'10';
-const rpeNote=(r,en,note)=>'Max RPE '+maxRpe(r,en)+(note?' · '+note:'');
-/* poznámky z verze 2, které obsahovaly RPE v textu – nahradí se celé */
-const OLD_NOTES={
- 'Lopatky stažené, osa na dolní část hrudníku, lokty 45–70° od těla. RPE 8–9, cvič v kleci s jističi.':1,
- 'RPE 8 kvůli zádům. Pánev dozadu, záda rovná, osa těsně podél nohou.':1,
- 'Supersérie s lýtky vsedě. Lehčí váha, RPE 8.':1,
- 'Supersérie s lýtky na leg pressu. Lehčí váha, RPE 8.':1};
-function addRpe(S){
-  PLAN.forEach(([rn,items])=>{
-    const r=S.routines.find(x=>x.name===rn);if(!r)return;
-    r.items.forEach(it=>{
-      const en=exName0(S,it.exId),pi=items.find(i=>i[0]===en);
-      if(/^Max RPE/.test(it.note||''))return;
-      const base=pi&&OLD_NOTES[it.note]?pi[5]:(it.note||'');
-      it.note=rpeNote(rn,en,base);
-    });
-  });
-  S.planV=PLAN_V;
-}
 const exName0=(S,id)=>(S.exercises.find(e=>e.id===id)||{}).name||'';
-function applyPlan(S){
-  const exId=name=>{let ex=S.exercises.find(e=>e.name.toLowerCase()===name.toLowerCase());
-    if(!ex){ex={id:uid(),name};S.exercises.push(ex)}return ex.id};
-  const old=S.routines.filter(r=>!/\(starý\)$/.test(r.name));
-  old.forEach(r=>{r.active=false;r.name+=' (starý)'});
-  const fresh=PLAN.map(([name,items])=>({id:uid(),name,items:items.map(([en,a,w,reps,rest,note])=>{
-    const rows=[];for(let i=0;i<w;i++)rows.push({type:'W',reps});
-    return {exId:exId(en),rest,note:rpeNote(name,en,note),rows}})}));
-  S.routines=[...fresh,...S.routines];
-  S.planV=PLAN_V;
-}
-
-/* cílová opakování: jen celé číslo */
-function cleanReps(v){return String(v??'').replace(/\D/g,'').replace(/^0+(?=\d)/,'').slice(0,3)}
-/* převod textu/rozsahu na celé číslo: rozsah -> střed (x,5 se zaokrouhluje nahoru) */
-function midReps(v){const n=String(v??'').match(/\d+/g);if(!n)return '';
-  return String(n.length>1?Math.round((+n[0]+ +n[1])/2):+n[0])}
-function numericReps(S){
-  S.routines.forEach(r=>r.items.forEach(it=>{
-    let perLeg=false;
-    it.rows.forEach(row=>{if(/nohu/i.test(row.reps||''))perLeg=true;row.reps=midReps(row.reps)});
-    if(perLeg&&!/na (každou )?nohu/i.test(it.note||''))it.note=(it.note?it.note+' · ':'')+'Opakování na každou nohu.';
-  }));
-  if(S.active)S.active.sets.forEach(x=>{if(x.target!=null)x.target=midReps(x.target)});
-  S.repsInt=true;
-}
-/* pauza podle typu cviku: izolovaný (malá partie) 90 s, komplexní 150 s */
-const ISO=/zdvih|raise|curl|pushdown|extension|triceps(?! dip)|face pull|lýtk|předkopáv|zakopáv|reverse fly|rozpažov|shrug|hyperextenz/i;
-const isIso=name=>ISO.test(name||'');
-const restFor=name=>isIso(name)?90:150;
-/* první cvik supersérie má jen krátký přechod na druhý cvik – ten se nemění */
-const ssTransition=it=>/Supersérie/i.test(it.note||'')&&it.rest<=45;
-function setRests(S){
-  S.routines.forEach(r=>r.items.forEach(it=>{if(!ssTransition(it))it.rest=restFor(exName0(S,it.exId))}));
-  S.restV=1;
-}
-const isActive=r=>r.active!==false;
 let S=load()||seed();
-if(!S.planV||S.planV<2){applyPlan(S);save()}else if(S.planV<PLAN_V){addRpe(S);save()}
 /* verze 4: bez aktivačních sérií – před změnou se uloží kopie původních dat */
 function dropActivation(S){
   S.routines.forEach(r=>r.items.forEach(it=>{it.rows=it.rows.filter(x=>x.type!=='A')}));
