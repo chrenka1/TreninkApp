@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="cs">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#EEF0F2" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0F1215" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Železný deník</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700&family=Source+Sans+3:wght@400;600;700&display=swap">
+<style>
+/* Layout: jednosloupcová mobilní aplikace, spodní navigace, karta = cvik, řádek = série */
+:root{
+  --bg:#EEF0F2; --surface:#FFFFFF; --fg:#15181C; --muted:#5F6670; --line:#D9DDE2;
+  --accent:#1F4FD1; --accent-ink:#FFFFFF; --accent-soft:#E4EAFB;
+  --ok:#1E8A4C; --ok-bg:#E3F3EA; --danger:#B42318;
+  --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
+  --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0F1215; --surface:#181C21; --fg:#E8EAED; --muted:#98A0AA; --line:#2A3038;
+  --accent:#6E92FF; --accent-ink:#0B1020; --accent-soft:#1C2540;
+  --ok:#4CC184; --ok-bg:#13281D; --danger:#F07A6E; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0F1215; --surface:#181C21; --fg:#E8EAED; --muted:#98A0AA; --line:#2A3038;
+  --accent:#6E92FF; --accent-ink:#0B1020; --accent-soft:#1C2540;
+  --ok:#4CC184; --ok-bg:#13281D; --danger:#F07A6E; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.4;
+  -webkit-tap-highlight-color:transparent}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));
+  padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0 120px}
+
+header.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);
+  display:flex;align-items:center;gap:12px;padding-block:14px 10px;border-bottom:1px solid var(--line);margin-bottom:16px}
+header.top h1{font-family:var(--display);font-size:30px;line-height:1;margin:0;letter-spacing:.01em;text-transform:uppercase;flex:1;min-width:0;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sub{color:var(--muted);font-size:14px}
+.stack{display:flex;flex-direction:column;gap:12px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px}
+.row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.grow{flex:1;min-width:0}
+.chip{font-family:var(--display);font-size:14px;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--accent-soft);color:var(--accent);padding:2px 8px;border-radius:6px}
+h2{font-family:var(--display);font-size:24px;margin:0;line-height:1.1;text-wrap:balance}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:10px 14px;font-weight:600;min-height:44px}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.next{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.card.is-next{border-color:var(--ok)}
+.chip.ok{background:var(--ok-bg);color:var(--ok)}
+.chip.off{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
+.card.inactive{background:transparent;border-style:dashed}
+.card.inactive h2,.card.inactive .rl{color:var(--muted)}
+.card.inactive .rl .v{opacity:.8}
+.sect{font-family:var(--display);font-size:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:12px 0 0}
+.iconbtn:disabled{opacity:.35}
+.btn.danger{color:var(--danger);background:transparent;border-color:transparent}
+.btn.small{min-height:36px;padding:6px 10px;font-size:14px}
+.btn.wide{width:100%}
+.exlist{color:var(--muted);font-size:14px;margin:6px 0 12px}
+.note{font-size:14px;color:var(--muted);background:var(--accent-soft);border-radius:10px;padding:10px 12px}
+
+/* aktivní trénink */
+.stats{display:flex;gap:18px;margin-bottom:14px;font-variant-numeric:tabular-nums}
+.stats div{display:flex;flex-direction:column}
+.stats b{font-family:var(--display);font-size:26px;line-height:1}
+.stats span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.ex h2{font-size:22px}
+.meta{font-size:13px;color:var(--muted);margin:2px 0 8px}
+.hint{font-size:13px;color:var(--ok);font-weight:600;margin:-4px 0 8px}
+.exnote{font-size:14px;margin:0 0 10px;padding:8px 10px;border-left:3px solid var(--line);color:var(--fg);white-space:pre-wrap}
+.sets{display:grid;grid-template-columns:30px minmax(0,1fr) 60px 50px 58px 40px;gap:6px 5px;align-items:center;font-variant-numeric:tabular-nums}
+.sets select{width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:15px;font-weight:600;text-align:center;padding:0 2px;color:var(--fg)}
+.prev small{display:block;font-size:12px;opacity:.85}
+.rl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:15px;margin:8px 0 12px;font-variant-numeric:tabular-nums}
+.rl .v{color:var(--muted);text-align:right}
+.erows{display:grid;grid-template-columns:44px minmax(0,1fr) 36px;gap:6px;align-items:center;margin-top:8px}
+.erows .h{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.erows input{min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 10px;width:100%}
+.tbtn{min-height:38px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-family:var(--display);font-size:17px}
+.tbtn.a{color:var(--muted)}
+textarea.txt{min-height:64px;padding:8px 12px;resize:vertical;line-height:1.4}
+.sets .h{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-bottom:2px}
+.lbl{font-family:var(--display);font-size:18px;text-align:center;border-radius:6px;padding:6px 0}
+.lbl.a{color:var(--muted);font-size:15px}
+.prev{background:none;border:none;text-align:left;color:var(--muted);padding:8px 2px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sets input{width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:center;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;padding:0 4px}
+.sets input::placeholder{color:var(--muted);font-weight:400;opacity:.7}
+.chk{min-height:40px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-size:20px;line-height:1;color:var(--muted)}
+.chk.on{background:var(--ok);border-color:var(--ok);color:var(--surface)}
+.done-row{background:var(--ok-bg)}
+.sets .done-row{border-radius:6px}
+.addset{margin-top:8px}
+
+.restbar{position:fixed;left:0;right:0;bottom:0;z-index:8;background:var(--fg);color:var(--bg);
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(10px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.restbar .in{max-width:560px;margin:0 auto;display:flex;align-items:center;gap:8px}
+.restbar b{font-family:var(--display);font-size:30px;flex:1;font-variant-numeric:tabular-nums}
+.restbar button{background:transparent;color:var(--bg);border:1px solid currentColor;border-radius:8px;min-height:40px;padding:0 12px;font-weight:600}
+
+nav.bottom{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--surface);border-top:1px solid var(--line);
+  display:flex;justify-content:center;padding:6px max(16px,env(safe-area-inset-right,0px)) calc(6px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+nav.bottom .in{display:flex;gap:6px;width:100%;max-width:560px}
+nav.bottom button{flex:1;border:none;background:none;min-height:48px;border-radius:10px;font-family:var(--display);font-size:18px;
+  text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+nav.bottom button[aria-current="page"]{color:var(--accent);background:var(--accent-soft)}
+
+/* historie */
+.hist summary{list-style:none;cursor:pointer}
+.hist summary::-webkit-details-marker{display:none}
+.hl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;margin-top:10px;font-size:15px;font-variant-numeric:tabular-nums}
+.hl .n{font-weight:600}
+.hl .v{color:var(--muted);text-align:right}
+
+/* editor */
+.ed-item{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:center;padding-block:10px;border-bottom:1px solid var(--line)}
+.ed-item:last-child{border-bottom:none}
+.ed-fields{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+.ed-fields label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:2px}
+.ed-fields input{width:64px;min-height:36px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:center}
+.txt{width:100%;min-height:44px;border:1px solid var(--line);border-radius:10px;background:var(--bg);padding:0 12px}
+.iconbtn{border:1px solid var(--line);background:var(--bg);border-radius:8px;width:36px;height:36px}
+@media (prefers-reduced-motion:no-preference){.chk,.btn{transition:background-color .15s,transform .1s}.chk:active,.btn:active{transform:scale(.96)}}
+</style>
+
+</head>
+<body>
+<div id="app" class="wrap"></div>
+<div class="restbar" id="rest" hidden><div class="in">
+  <span>Pauza</span><b id="restT">2:00</b>
+  <button id="restMinus" type="button">−15 s</button><button id="restPlus" type="button">+15 s</button><button id="restSkip" type="button">Hotovo</button>
+</div></div>
+<nav class="bottom" id="nav"><div class="in">
+  <button type="button" data-tab="routines" id="navR">Rutiny</button>
+  <button type="button" data-tab="history" id="navH">Historie</button>
+</div></nav>
+<datalist id="exnames"></datalist>
+
+<script>
+const KEY='zelezny-denik-v1';
+const RPE=['6','7','7.5','8','8.5','9','9.5','10'];
+const uid=()=>Math.random().toString(36).slice(2,9);
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const r25=x=>Math.round(x/2.5)*2.5;
+const fmtD=t=>new Date(t).toLocaleDateString('cs-CZ',{weekday:'short',day:'numeric',month:'numeric'});
+const fmtT=s=>{s=Math.max(0,Math.round(s));return Math.floor(s/60)+':'+String(s%60).padStart(2,'0')};
+const num=v=>v===''||v==null?null:Number(String(v).replace(',','.'));
+const localDate=()=>{const d=new Date(),p=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+p(d.getMonth()+1)+'-'+p(d.getDate())};
+const rpeTxt=v=>v?String(v).replace('.',','):'';
+const defRows=reps=>[{type:'W',reps},{type:'W',reps}];
+
+/* ---------- ukázková data ---------- */
+function seed(){
+  const plan=[
+    ['Push A',[['Bench press (osa)',80],['Tlak nad hlavu (osa)',50],['Šikmý tlak s jednoručkami',28],['Boční zdvihy s jednoručkami',12,'10–15',[15,15]],['Triceps na kladce',30]]],
+    ['Pull A',[['Stahování kladky (lat pulldown)',65],['Přítahy jednoruček s oporou hrudi',30],['Face pull',25,'10–15'],['Přítahy kladky vsedě – lano k hrudi',55],['Bicepsový zdvih',14]]],
+    ['Nohy',[['Dřep',100],['Rumunský mrtvý tah',90],['Lýtka ve stoji',80,'10–15']]],
+    ['Push B',[['Tlak s jednoručkami',32],['Tlaky na šikmém stroji',60],['Dipy na bradlech',0],['Boční zdvihy na kladce',10,'10–15'],['Bench press úzkým úchopem',70]]],
+    ['Pull B',[['Stahování kladky úzkým úchopem',60],['Přítahy kladky vsedě – V úchop',60],['Vysoký přítah kladky jednoruč',20],['Reverse fly',8,'10–15'],['Kelso shrug',24],['EZ bicepsový zdvih',30]]]
+  ];
+  const lastDates={'Push A':'2026-10-19','Pull A':'2026-10-14','Nohy':'2026-10-15','Push B':'2026-10-16','Pull B':'2026-10-18'};
+  const S={exercises:[],routines:[],workouts:[],active:null,sample:true};
+  plan.forEach(([name,items])=>{
+    const r={id:uid(),name,items:[]};
+    items.forEach(([en,kg,reps,wr])=>{
+      const ex={id:uid(),name:en};S.exercises.push(ex);
+      r.items.push({exId:ex.id,rest:120,note:'',rows:defRows(reps||'6–10'),kg,wr,rng:reps||'6–10'});
+    });
+    S.routines.push(r);
+  });
+  S.routines[0].items[3].note='Lokty lehce pokrčené, zdvih do výše ramen, dolů pomalu.';
+  const mk=(r,date,f)=>{
+    const st=new Date(date+'T17:30:00').getTime();
+    const sets=[];
+    r.items.forEach(it=>{
+      const k=it.kg*f, top=it.rng==='10–15'?[13,12]:[8,7], wr=f===1&&it.wr?it.wr:top;
+      sets.push({exId:it.exId,type:'W',kg:r25(k),reps:wr[0],rpe:'9',done:true});
+      sets.push({exId:it.exId,type:'W',kg:r25(k),reps:wr[1],rpe:'9.5',done:true});
+    });
+    return {id:uid(),routineId:r.id,name:r.name,start:st,end:st+42*60000,sets,sample:true};
+  };
+  S.routines.forEach(r=>S.workouts.push(mk(r,lastDates[r.name],1)));
+  S.workouts.push(mk(S.routines[1],'2026-10-07',.95));
+  S.routines.forEach(r=>r.items.forEach(it=>{delete it.kg;delete it.wr;delete it.rng}));
+  S.workouts.sort((a,b)=>b.start-a.start);
+  return S;
+}
+function migrate(S){
+  S.routines.forEach(r=>{delete r.day;r.items.forEach(it=>{
+    if(!it.rows){it.rows=[];for(let i=0;i<(it.warmup||0);i++)it.rows.push({type:'A',reps:''});
+      for(let i=0;i<(it.sets||0);i++)it.rows.push({type:'W',reps:it.reps||''});}
+    delete it.warmup;delete it.sets;delete it.reps;if(it.note==null)it.note='';if(it.rest==null)it.rest=120;})});
+  return S;
+}
+function load(){try{const v=localStorage.getItem(KEY);return v?migrate(JSON.parse(v)):null}catch(e){return null}}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+/* ---------- plán PPL v2 (Push / Pull / Legs A–B) ---------- */
+const PLAN_V=3;
+/* [název, aktivační série, pracovní série, opakování, pauza s, poznámka] */
+const PLAN=[
+ ['Push A',[
+  ['Bench press (osa)',2,4,'5–10',150,'Lopatky stažené, osa na dolní část hrudníku, lokty 45–70° od těla. Cvič v kleci s jističi.'],
+  ['Tlak nad hlavu s jednoručkami',1,3,'5–8',120,''],
+  ['Šikmý tlak s jednoručkami',1,3,'6–10',120,''],
+  ['Boční zdvihy s jednoručkami',0,3,'10–15',75,'Lokty lehce pokrčené, zdvih do výše ramen, dolů pomalu.'],
+  ['Triceps na kladce',0,3,'8–12',75,'']]],
+ ['Pull A',[
+  ['Stahování kladky (lat pulldown)',2,3,'6–12',120,'Pokud kladka nedovolí plné natažení, cvič vkleče před strojem.'],
+  ['Přítahy kladky vsedě – rovná tyč',1,3,'8–10',120,'Širší úchop, lokty od těla 45–60°, tahej k dolní části hrudníku, nahoře stáhni lopatky a vydrž 1 s.'],
+  ['Bicepsový zdvih',1,3,'7–10',45,'Supersérie s Face pull – bez pauzy přejdi na face pull.'],
+  ['Face pull',0,3,'12–15',90,'Supersérie s bicepsovým zdvihem. Lano k obličeji, lokty vysoko, ruce na konci od sebe, stáhni lopatky.'],
+  ['Bicepsový zdvih na šikmé lavici',0,3,'8–12',90,'Lavice 45–60°, paže visí za tělem, dole nech biceps plně natáhnout.']]],
+ ['Legs A',[
+  ['Lýtka ve stoji',1,3,'8–12',75,'Plný rozsah, dole pauza 1–2 s v natažení.'],
+  ['Leg press',2,3,'8–12',150,'Pánev zůstává opřená, kolena nahoře nepropínej.'],
+  ['Rumunský mrtvý tah',1,3,'6–10',150,'Ne do selhání kvůli zádům. Pánev dozadu, záda rovná, osa těsně podél nohou.'],
+  ['Předkopávání',0,2,'10–15',30,'Supersérie se zakopáváním vsedě.'],
+  ['Zakopávání vsedě',0,2,'10–12',90,'Supersérie s předkopáváním.'],
+  ['Lýtka vsedě',0,2,'12–15',30,'Supersérie s bočními zdvihy. Dole pauza 1–2 s.'],
+  ['Boční zdvihy s jednoručkami',0,3,'12–20',75,'Supersérie s lýtky vsedě. Lehčí váha.']]],
+ ['Push B',[
+  ['Tlak s jednoručkami',2,4,'7–12',150,''],
+  ['Dipy na bradlech',1,3,'7–10',120,'Se zátěží.'],
+  ['Tlak nad hlavu na stroji',1,3,'7–10',120,''],
+  ['Boční zdvihy na kladce',0,3,'10–15',75,'Jednoruč.'],
+  ['Triceps nad hlavou na kladce',0,3,'10–15',75,'Zády ke kladce, lano za hlavou, lokty nahoru a u sebe. Dole nech triceps natáhnout. Alternativa: francouzský tlak s jednoručkou vsedě.']]],
+ ['Pull B',[
+  ['Shyby úzkým / neutrálním úchopem',2,3,'6–10',150,'Dole plně propnout paže. Pokud jich nezvládneš 6, použij asistovaný stroj nebo gumu.'],
+  ['Přítahy kladky vsedě – V úchop',1,3,'8–12',120,''],
+  ['Přítahy jednoruček s oporou hrudi',0,2,'8–12',90,'Šikmá lavice 30–45°, lokty od těla, nahoře stáhni lopatky a vydrž 1 s.'],
+  ['EZ bicepsový zdvih',1,3,'7–10',45,'Supersérie s Reverse fly.'],
+  ['Reverse fly',0,3,'10–15',90,'Supersérie s EZ zdvihem. Důraz na stahování lopatek.'],
+  ['Kladivový zdvih',0,2,'10–12',75,'']]],
+ ['Legs B',[
+  ['Lýtka vsedě',1,3,'12–20',75,'Dole pauza 1–2 s v natažení.'],
+  ['Bulharský dřep',1,2,'8–10 / nohu',120,'Zadní noha na lavici, jednoručky v rukou.'],
+  ['Hyperextenze 45°',0,3,'10–15',90,'Ohýbej se v kyčlích, ne v bedrech. Jednoručka na hrudi.'],
+  ['Předkopávání',0,2,'12–15',30,'Supersérie se zakopáváním vsedě.'],
+  ['Zakopávání vsedě',0,2,'8–12',90,'Supersérie s předkopáváním.'],
+  ['Lýtka na leg pressu',0,2,'10–15',30,'Supersérie s bočními zdvihy na kladce.'],
+  ['Boční zdvihy na kladce',0,3,'12–20',75,'Supersérie s lýtky na leg pressu. Lehčí váha.']]]
+];
+
+/* max RPE podle rutiny a cviku: těžké volné váhy níž, stroje/kladky/izolace do selhání */
+const MAXRPE={
+ 'Push A':{'Bench press (osa)':'8','Tlak nad hlavu s jednoručkami':'8–9','Šikmý tlak s jednoručkami':'8–9'},
+ 'Legs A':{'Leg press':'8–9','Rumunský mrtvý tah':'8','Boční zdvihy s jednoručkami':'8'},
+ 'Push B':{'Tlak s jednoručkami':'8–9','Dipy na bradlech':'8'},
+ 'Pull B':{'Shyby úzkým / neutrálním úchopem':'8–9'},
+ 'Legs B':{'Bulharský dřep':'8–9','Boční zdvihy na kladce':'8'}
+};
+const maxRpe=(r,en)=>(MAXRPE[r]&&MAXRPE[r][en])||'10';
+const rpeNote=(r,en,note)=>'Max RPE '+maxRpe(r,en)+(note?' · '+note:'');
+/* poznámky z verze 2, které obsahovaly RPE v textu – nahradí se celé */
+const OLD_NOTES={
+ 'Lopatky stažené, osa na dolní část hrudníku, lokty 45–70° od těla. RPE 8–9, cvič v kleci s jističi.':1,
+ 'RPE 8 kvůli zádům. Pánev dozadu, záda rovná, osa těsně podél nohou.':1,
+ 'Supersérie s lýtky vsedě. Lehčí váha, RPE 8.':1,
+ 'Supersérie s lýtky na leg pressu. Lehčí váha, RPE 8.':1};
+function addRpe(S){
+  PLAN.forEach(([rn,items])=>{
+    const r=S.routines.find(x=>x.name===rn);if(!r)return;
+    r.items.forEach(it=>{
+      const en=exName0(S,it.exId),pi=items.find(i=>i[0]===en);
+      if(/^Max RPE/.test(it.note||''))return;
+      const base=pi&&OLD_NOTES[it.note]?pi[5]:(it.note||'');
+      it.note=rpeNote(rn,en,base);
+    });
+  });
+  S.planV=PLAN_V;
+}
+const exName0=(S,id)=>(S.exercises.find(e=>e.id===id)||{}).name||'';
+function applyPlan(S){
+  const exId=name=>{let ex=S.exercises.find(e=>e.name.toLowerCase()===name.toLowerCase());
+    if(!ex){ex={id:uid(),name};S.exercises.push(ex)}return ex.id};
+  const old=S.routines.filter(r=>!/\(starý\)$/.test(r.name));
+  old.forEach(r=>{r.active=false;r.name+=' (starý)'});
+  const fresh=PLAN.map(([name,items])=>({id:uid(),name,items:items.map(([en,a,w,reps,rest,note])=>{
+    const rows=[];for(let i=0;i<w;i++)rows.push({type:'W',reps});
+    return {exId:exId(en),rest,note:rpeNote(name,en,note),rows}})}));
+  S.routines=[...fresh,...S.routines];
+  S.planV=PLAN_V;
+}
+
+let S=load()||seed();
+if(!S.planV||S.planV<2){applyPlan(S);save()}else if(S.planV<PLAN_V){addRpe(S);save()}
+/* verze 4: bez aktivačních sérií – před změnou se uloží kopie původních dat */
+function dropActivation(S){
+  S.routines.forEach(r=>r.items.forEach(it=>{it.rows=it.rows.filter(x=>x.type!=='A')}));
+  if(S.active)S.active.sets=S.active.sets.filter(x=>x.type!=='A');
+  S.noAct=true;
+}
+if(!S.noAct){try{localStorage.setItem(KEY+'-pred-v4',JSON.stringify(S))}catch(e){}dropActivation(S);save()}
+const ui={tab:'routines',edit:null,confirm:null};
+
+const exName=id=>(S.exercises.find(e=>e.id===id)||{}).name||'?';
+function prevFor(exId){
+  const w=S.workouts.find(w=>w.sets.some(s=>s.exId===exId&&s.done));
+  if(!w)return null;
+  const sets=w.sets.filter(s=>s.exId===exId&&s.done);
+  return {date:w.start,A:sets.filter(s=>s.type==='A'),W:sets.filter(s=>s.type==='W')};
+}
+const vol=sets=>sets.filter(s=>s.done).reduce((a,s)=>a+(num(s.kg)||0)*(num(s.reps)||0),0);
+const fmtVol=v=>v>=1000?(v/1000).toLocaleString('cs-CZ',{maximumFractionDigits:1})+' t':Math.round(v)+' kg';
+const fmtSet=s=>s?`${num(s.kg)??0} × ${s.reps}${s.rpe?' @'+rpeTxt(s.rpe):''}`:'—';
+const rowsSummary=it=>{const w=it.rows.filter(r=>r.type==='W');
+  const rng=[...new Set(w.map(r=>r.reps).filter(Boolean))].join(', ');
+  return `${w.length} ${w.length===1?'série':w.length<5?'série':'sérií'}${rng?' · '+rng:''}`};
+const rowLabels=rows=>{let a=0,w=0;return rows.map(r=>r.type==='A'?'A'+(++a):String(++w))};
+
+/* ---------- rendering ---------- */
+function render(){
+  $('#nav').hidden=!!S.active||!!ui.edit;
+  $('#navR').setAttribute('aria-current',ui.tab==='routines'?'page':'false');
+  $('#navH').setAttribute('aria-current',ui.tab==='history'?'page':'false');
+  $('#exnames').innerHTML=S.exercises.map(e=>`<option value="${esc(e.name)}">`).join('');
+  if(S.active)return renderWorkout();
+  $('#rest').hidden=true;
+  if(ui.edit)return renderEditor();
+  ui.tab==='history'?renderHistory():renderRoutines();
+}
+
+/* další rutina = první AKTIVNÍ rutina, která v pořadí následuje po naposledy odcvičené (dokola) */
+const isActive=r=>r.active!==false;
+function nextRoutineId(){
+  const rs=S.routines,n=rs.length;if(!rs.some(isActive))return null;
+  const last=S.workouts.slice().sort((a,b)=>b.start-a.start).find(w=>rs.some(r=>r.id===w.routineId));
+  if(!last)return rs.find(isActive).id;
+  const i=rs.findIndex(r=>r.id===last.routineId);
+  for(let k=1;k<=n;k++){const r=rs[(i+k)%n];if(isActive(r))return r.id}
+  return null;
+}
+function renderRoutines(){
+  const nextId=nextRoutineId(), act=S.routines.filter(isActive), ina=S.routines.filter(r=>!isActive(r));
+  const exl=r=>`<div class="rl">${r.items.map(i=>`<span>${esc(exName(i.exId))}</span><span class="v">${esc(rowsSummary(i))}</span>`).join('')||'<span class="sub">Bez cviků</span>'}</div>`;
+  const mv=(r,k,len)=>`<button class="iconbtn" type="button" data-act="moveR" data-id="${r.id}" data-d="-1" aria-label="Posunout nahoru" ${k?'':'disabled'}>▲</button>
+      <button class="iconbtn" type="button" data-act="moveR" data-id="${r.id}" data-d="1" aria-label="Posunout dolů" ${k<len-1?'':'disabled'}>▼</button>`;
+  $('#app').innerHTML=`<header class="top"><h1>Rutiny</h1>
+    <button class="btn small" type="button" data-act="newRoutine">+ Nová</button></header>
+  <div class="stack">${act.map((r,k)=>{
+    const last=S.workouts.find(w=>w.routineId===r.id), isNext=r.id===nextId;
+    return `<div class="card${isNext?' is-next':''}">
+      <div class="row"><h2 class="grow">${esc(r.name)}</h2>${isNext?'<span class="chip ok">Na řadě</span>':''}${mv(r,k,act.length)}</div>
+      <div class="sub" style="margin-top:2px">${last?'naposledy '+fmtD(last.start):'zatím necvičeno'}</div>
+      ${exl(r)}
+      <div class="row"><button class="btn ${isNext?'next':'primary'} grow" type="button" data-act="start" data-id="${r.id}">Začít trénink</button>
+      <button class="btn" type="button" data-act="edit" data-id="${r.id}">Upravit</button></div>
+    </div>`}).join('')||'<div class="card sub">Žádná aktivní rutina. Aktivuj některou níže, nebo vytvoř novou.</div>'}
+  ${ina.length?`<h3 class="sect">Neaktivní</h3>${ina.map((r,k)=>`<div class="card inactive">
+      <div class="row"><h2 class="grow">${esc(r.name)}</h2><span class="chip off">Neaktivní</span>${mv(r,k,ina.length)}</div>
+      ${exl(r)}
+      <div class="row"><button class="btn grow" type="button" data-act="toggleActive" data-id="${r.id}">Aktivovat</button>
+      <button class="btn" type="button" data-act="edit" data-id="${r.id}">Upravit</button></div>
+    </div>`).join('')}`:''}
+  </div>`;
+}
+function renderHistory(){
+  const ws=S.workouts;
+  $('#app').innerHTML=`<header class="top"><h1>Historie</h1>
+    <button class="btn small" type="button" data-act="exportCsv" ${ws.length?'':'disabled'}>Export CSV</button></header>
+  <div class="stack">
+  ${ui.exportMsg?`<div class="note">${esc(ui.exportMsg)}</div>`:''}
+  ${ui.csvText?`<div class="card stack"><div class="sub">Ukládání souboru tady není dostupné. Zkopíruj obsah a vlož ho do souboru s příponou ${ui.dumpExt||'.csv'}.</div>
+    <textarea class="txt" id="csvOut" readonly style="min-height:160px;font-family:ui-monospace,monospace;font-size:12px">${esc(ui.csvText)}</textarea>
+    <div class="row"><button class="btn small" type="button" data-act="copyCsv">Kopírovat</button><button class="btn small ghost" type="button" data-act="closeCsv">Zavřít</button></div></div>`:''}
+  <div class="sub">${ws.length} tréninků</div>
+  ${S.sample&&ws.some(w=>w.sample)?`<div class="note">Tréninky označené „ukázka“ jsou vymyšlené hodnoty, aby byl vidět sloupec „Minule“.
+    <div class="row" style="margin-top:8px"><button class="btn small" type="button" data-act="clearSample">${ui.confirm==='clearSample'?'Opravdu smazat ukázky?':'Smazat ukázky'}</button></div></div>`:''}
+  ${ui.pending?`<div class="card stack is-next"><b>Obnovit ze zálohy?</b>
+    <div class="sub">Záloha z ${fmtD(ui.pending.exported)}: ${ui.pending.data.routines.length} rutin, ${ui.pending.data.workouts.length} tréninků. Současná data v aplikaci se nahradí.</div>
+    <div class="row"><button class="btn next" type="button" data-act="restoreYes">Obnovit</button><button class="btn ghost" type="button" data-act="restoreNo">Zrušit</button></div></div>`:''}
+  ${ws.length?'':'<div class="card sub">Zatím žádný trénink. Začni některou rutinu na kartě Rutiny.</div>'}
+  ${ws.map(w=>{
+    const exIds=[...new Set(w.sets.map(s=>s.exId))];
+    return `<details class="card hist"><summary>
+      <div class="row"><span class="chip">${fmtD(w.start)}</span><h2 class="grow">${esc(w.name)}</h2>${w.sample?'<span class="sub">ukázka</span>':''}</div>
+      <div class="stats" style="margin:10px 0 0"><div><b>${Math.round((w.end-w.start)/60000)}</b><span>min</span></div>
+      <div><b>${w.sets.filter(s=>s.type==='W').length}</b><span>sérií</span></div><div><b>${fmtVol(vol(w.sets))}</b><span>objem</span></div></div></summary>
+      <div class="hl">${exIds.map(id=>`<span class="n">${esc(exName(id))}</span><span class="v">${w.sets.filter(s=>s.exId===id&&s.type==='W').map(fmtSet).join(', ')}</span>`).join('')}</div>
+    </details>`}).join('')}
+  <div class="card stack"><h2>Záloha dat</h2>
+    <div class="sub">Celá data aplikace (rutiny, cviky, historie) v jednom souboru JSON. Ulož si ho třeba na Google Disk.</div>
+    <div class="row"><button class="btn primary" type="button" data-act="backup">Stáhnout zálohu</button>
+    <button class="btn" type="button" data-act="restore">Obnovit ze zálohy</button></div>
+    <input type="file" id="restoreFile" accept=".json,application/json" hidden></div>
+  </div>`;
+}
+
+function renderWorkout(){
+  const a=S.active, r=S.routines.find(x=>x.id===a.routineId)||{items:[]};
+  const exIds=[...new Set(a.sets.map(s=>s.exId))];
+  const done=a.sets.filter(s=>s.done).length;
+  $('#app').innerHTML=`<header class="top"><h1>${esc(a.name)}</h1>
+    <button class="btn primary small" type="button" data-act="finish">${ui.confirm==='finish'?'Opravdu dokončit?':'Dokončit'}</button></header>
+  <div class="stats"><div><b id="elapsed">${fmtT((Date.now()-a.start)/1000)}</b><span>čas</span></div>
+    <div><b>${done}/${a.sets.length}</b><span>sérií</span></div><div><b>${fmtVol(vol(a.sets))}</b><span>objem</span></div></div>
+  <div class="stack">${exIds.map(exId=>{
+    const it=r.items.find(i=>i.exId===exId)||{rows:[],rest:120,note:''};
+    const prev=prevFor(exId);
+    const max=Math.max(0,...it.rows.filter(x=>x.type==='W').map(x=>Number(String(x.reps).split(/[–-]/).pop())||0));
+    const hit=prev&&prev.W.length&&max&&prev.W.every(s=>num(s.reps)>=max);
+    let ai=0,wi=0;
+    const rows=a.sets.map((s,i)=>{if(s.exId!==exId)return '';
+      const isA=s.type==='A', n=isA?++ai:++wi, p=prev?(isA?prev.A[n-1]:prev.W[n-1]):null;
+      const dc=s.done?' done-row':'';
+      return `<div class="lbl${isA?' a':''}${dc}">${isA?'A'+n:n}</div>
+        <button class="prev" type="button" data-act="copy" data-i="${i}" ${p?'':'disabled'} aria-label="Použít minulé hodnoty">${p?`${num(p.kg)}×${p.reps}${p.rpe?`<small>@${rpeTxt(p.rpe)}</small>`:''}`:'—'}</button>
+        <input id="kg${i}" inputmode="decimal" data-f="kg" data-i="${i}" value="${esc(s.kg)}" placeholder="${p?num(p.kg):'kg'}" aria-label="kg">
+        <input id="rp${i}" inputmode="numeric" data-f="reps" data-i="${i}" value="${esc(s.reps)}" placeholder="${p?p.reps:(s.target||'opak.')}" aria-label="opakování">
+        <select id="rpe${i}" data-f="rpe" data-i="${i}" aria-label="RPE"><option value="">–</option>${RPE.map(v=>`<option value="${v}"${String(s.rpe)===v?' selected':''}>${rpeTxt(v)}</option>`).join('')}</select>
+        <button class="chk${s.done?' on':''}" type="button" data-act="check" data-i="${i}" aria-label="Série hotová" aria-pressed="${s.done}">✓</button>`}).join('');
+    return `<div class="card ex">
+      <h2>${esc(exName(exId))}</h2>
+      <div class="meta">${esc(rowsSummary(it))} · pauza ${fmtT(it.rest)}${prev?' · minule '+fmtD(prev.date):''}</div>
+      ${it.note?`<div class="exnote">${esc(it.note)}</div>`:''}
+      ${hit?'<div class="hint">Minule jsi dal horní hranici opakování. Zkus přidat váhu.</div>':''}
+      <div class="sets"><span class="h">Sér.</span><span class="h">Minule</span><span class="h">kg</span><span class="h">Opak.</span><span class="h">RPE</span><span class="h"></span>${rows}</div>
+      <div class="row addset"><button class="btn small ghost" type="button" data-act="addSet" data-ex="${exId}">+ Série</button></div>
+    </div>`}).join('')}
+    <button class="btn danger wide" type="button" data-act="discard">${ui.confirm==='discard'?'Opravdu zahodit trénink?':'Zahodit trénink'}</button>
+  </div>`;
+}
+
+function renderEditor(){
+  const r=S.routines.find(x=>x.id===ui.edit);
+  $('#app').innerHTML=`<header class="top"><h1>Úprava rutiny</h1><button class="btn primary small" type="button" data-act="closeEdit">Hotovo</button></header>
+  <div class="stack">
+    <div class="card"><input class="txt" id="rname" value="${esc(r.name)}" aria-label="Název rutiny" placeholder="Název rutiny"></div>
+    ${r.items.map((it,i)=>{const lb=rowLabels(it.rows);return `<div class="card">
+      <div class="row"><h2 class="grow">${esc(exName(it.exId))}</h2>
+        <button class="iconbtn" type="button" data-act="up" data-i="${i}" aria-label="Posunout nahoru" ${i?'':'disabled'}>▲</button>
+        <button class="iconbtn" type="button" data-act="del" data-i="${i}" aria-label="Odebrat cvik">✕</button></div>
+      <textarea class="txt" id="note${i}" data-ef="note" data-i="${i}" style="margin-top:10px" placeholder="Popis cviku: technika, nastavení stroje, na co si dát pozor">${esc(it.note)}</textarea>
+      <div class="erows"><span class="h">Série</span><span class="h">Cílová opakování</span><span></span>
+        ${it.rows.map((row,j)=>`<span class="tbtn" style="display:flex;align-items:center;justify-content:center">${lb[j]}</span>
+        <input id="rr${i}_${j}" data-rr="1" data-i="${i}" data-j="${j}" value="${esc(row.reps)}" placeholder="např. 6–10">
+        <button class="iconbtn" type="button" data-act="delRow" data-i="${i}" data-j="${j}" aria-label="Odebrat sérii">✕</button>`).join('')}
+      </div>
+      <div class="row" style="margin-top:10px"><button class="btn small" type="button" data-act="addRow" data-i="${i}" data-t="W">+ Série</button>
+        <span class="grow"></span>
+        <label class="sub row" style="gap:6px">Pauza <input id="p${i}" class="txt" style="width:70px;min-height:36px;text-align:center" inputmode="numeric" data-ef="rest" data-i="${i}" value="${it.rest}"> s</label></div>
+    </div>`}).join('')||'<div class="card sub">Zatím žádné cviky.</div>'}
+    <div class="card row"><input class="txt grow" id="newEx" list="exnames" placeholder="Přidat cvik (vyber nebo napiš nový)">
+      <button class="btn" type="button" data-act="addEx">Přidat</button></div>
+    <button class="btn wide" type="button" data-act="toggleActive">${isActive(r)?'Deaktivovat rutinu':'Aktivovat rutinu'}</button>
+    <button class="btn danger wide" type="button" data-act="delRoutine">${ui.confirm==='delRoutine'?'Opravdu smazat rutinu?':'Smazat rutinu'}</button>
+  </div>`;
+}
+
+/* ---------- akce ---------- */
+let restEnd=0,wake=null;
+function startRest(sec){restEnd=Date.now()+sec*1000;$('#rest').hidden=false;tickRest()}
+function stopRest(){restEnd=0;$('#rest').hidden=true}
+function tickRest(){if(!restEnd)return;const left=(restEnd-Date.now())/1000;$('#restT').textContent=fmtT(left);
+  if(left<=0){try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}stopRest()}}
+setInterval(()=>{tickRest();const el=$('#elapsed');if(el&&S.active)el.textContent=fmtT((Date.now()-S.active.start)/1000)},500);
+$('#restMinus').onclick=()=>{restEnd-=15000;tickRest()};
+$('#restPlus').onclick=()=>{restEnd+=15000;tickRest()};
+$('#restSkip').onclick=stopRest;
+const curItem=el=>S.routines.find(x=>x.id===ui.edit).items[+el.dataset.i];
+
+const act={
+  start(id){const r=S.routines.find(x=>x.id===id);const sets=[];
+    r.items.forEach(it=>it.rows.forEach(row=>sets.push({exId:it.exId,type:row.type,target:row.reps,kg:'',reps:'',rpe:'',done:false})));
+    S.active={id:uid(),routineId:r.id,name:r.name,start:Date.now(),sets};save();window.scrollTo(0,0);
+    try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>wake=l).catch(()=>{})}catch(e){}},
+  copy(_,el){const s=S.active.sets[+el.dataset.i],p=placeholderOf(+el.dataset.i);if(!p)return;s.kg=p.kg;s.reps=p.reps;save()},
+  check(_,el){const i=+el.dataset.i,s=S.active.sets[i];
+    if(!s.done){const p=placeholderOf(i);if(s.kg===''&&p)s.kg=p.kg;if(s.reps===''&&p)s.reps=p.reps;
+      if(s.kg===''||s.reps==='')return focusEmpty(i,s);
+      s.done=true;const r=S.routines.find(x=>x.id===S.active.routineId),it=r&&r.items.find(x=>x.exId===s.exId);
+      startRest(s.type==='A'?60:(it?it.rest:120))}else s.done=false;save()},
+  addSet(_,el){const ex=el.dataset.ex,sets=S.active.sets;let last=-1;sets.forEach((s,i)=>{if(s.exId===ex)last=i});
+    sets.splice(last+1,0,{exId:ex,type:'W',kg:'',reps:'',rpe:'',done:false});save()},
+  finish(){if(ui.confirm!=='finish'){ui.confirm='finish';return}
+    const a=S.active;a.end=Date.now();a.sets=a.sets.filter(s=>s.done).map(({target,...s})=>s);
+    if(a.sets.length)S.workouts.unshift(a);S.active=null;ui.tab='history';stopRest();save();
+    try{wake&&wake.release()}catch(e){};window.scrollTo(0,0)},
+  discard(){if(ui.confirm!=='discard'){ui.confirm='discard';return}S.active=null;stopRest();save()},
+  edit(id){ui.edit=id;window.scrollTo(0,0)},
+  newRoutine(){const r={id:uid(),name:'Nová rutina',items:[]};S.routines.push(r);save();ui.edit=r.id},
+  closeEdit(){ui.edit=null},
+  up(_,el){const r=S.routines.find(x=>x.id===ui.edit),i=+el.dataset.i;if(i>0)[r.items[i-1],r.items[i]]=[r.items[i],r.items[i-1]];save()},
+  del(_,el){S.routines.find(x=>x.id===ui.edit).items.splice(+el.dataset.i,1);save()},
+  toggleRow(_,el){const row=curItem(el).rows[+el.dataset.j];row.type=row.type==='A'?'W':'A';save()},
+  delRow(_,el){curItem(el).rows.splice(+el.dataset.j,1);save()},
+  addRow(_,el){const rows=curItem(el).rows,t=el.dataset.t;
+    const same=rows.filter(r=>r.type===t),reps=same.length?same[same.length-1].reps:(t==='A'?'10':'6–10');
+    if(t==='A'){let k=0;rows.forEach((r,j)=>{if(r.type==='A')k=j+1});rows.splice(k,0,{type:'A',reps})}else rows.push({type:'W',reps});save()},
+  addEx(){const v=$('#newEx').value.trim();if(!v)return;let ex=S.exercises.find(e=>e.name.toLowerCase()===v.toLowerCase());
+    if(!ex){ex={id:uid(),name:v};S.exercises.push(ex)}
+    S.routines.find(x=>x.id===ui.edit).items.push({exId:ex.id,rest:120,note:'',rows:defRows('6–10')});save()},
+  delRoutine(){if(ui.confirm!=='delRoutine'){ui.confirm='delRoutine';return}S.routines=S.routines.filter(x=>x.id!==ui.edit);ui.edit=null;save()},
+  exportCsv(){const csv=buildCsv(),fn='historie-treninku-'+localDate()+'.csv';
+    ui.exportMsg='';ui.csvText='';ui.dumpExt='.csv';
+    if(!downloads){ui.csvText=csv.slice(1);return}
+    downloads.save({filename:fn,data:csv}).then(()=>{ui.exportMsg='Uloženo do Stažených jako '+fn+'.'}).catch(e=>{
+      if(e&&e.code==='declined')ui.exportMsg='Export zrušen.';
+      else if(e&&e.code==='rate_limited')ui.exportMsg='Okno pro uložení už je otevřené. Zkus to za chvíli.';
+      else ui.csvText=csv.slice(1);
+    }).finally(render)},
+  copyCsv(){const done=()=>{ui.exportMsg='Zkopírováno do schránky.';render()};
+    const sel=()=>{const n=$('#csvOut');n&&(n.focus(),n.select())};
+    try{navigator.clipboard.writeText(ui.csvText).then(done).catch(sel)}catch(e){setTimeout(sel)}},
+  backup(){const today=localDate(),fn='zaloha-trenink-'+today+'.json';
+    const txt=JSON.stringify({app:'zelezny-denik',version:1,exported:Date.now(),data:S},null,1);
+    ui.exportMsg='';ui.csvText='';ui.dumpExt='.json';
+    if(!downloads){ui.csvText=txt;return}
+    downloads.save({filename:fn,data:txt}).then(()=>{ui.exportMsg='Záloha uložena do Stažených jako '+fn+'.'}).catch(e=>{
+      if(e&&e.code==='declined')ui.exportMsg='Uložení zálohy zrušeno.';
+      else if(e&&e.code==='rate_limited')ui.exportMsg='Okno pro uložení už je otevřené. Zkus to za chvíli.';
+      else ui.csvText=txt;
+    }).finally(render)},
+  restore(){ui.exportMsg='';const f=$('#restoreFile');f.value='';f.click()},
+  restoreYes(){S=migrate(ui.pending.data);S.active=null;ui.pending=null;save();ui.exportMsg='Data obnovena ze zálohy.'},
+  restoreNo(){ui.pending=null},
+  closeCsv(){ui.csvText='';ui.exportMsg=''},
+  moveR(id,el){const d=+el.dataset.d,rs=S.routines,r=rs.find(x=>x.id===id),grp=rs.filter(x=>isActive(x)===isActive(r)),
+      k=grp.indexOf(r),o=grp[k+d];if(!o)return;const i=rs.indexOf(r),j=rs.indexOf(o);[rs[i],rs[j]]=[rs[j],rs[i]];save()},
+  toggleActive(id){const r=S.routines.find(x=>x.id===(id||ui.edit));r.active=!isActive(r);save()},
+  clearSample(){if(ui.confirm!=='clearSample'){ui.confirm='clearSample';return}S.workouts=S.workouts.filter(w=>!w.sample);S.sample=false;save()}
+};
+/* ---------- export CSV ---------- */
+let downloads={save({filename,data}){return new Promise((res,rej)=>{try{
+  const url=URL.createObjectURL(new Blob([data],{type:filename.endsWith('.csv')?'text/csv;charset=utf-8':'application/json'}));
+  const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),4000);res({status:'saved'})}catch(e){rej({code:'unavailable'})}})}};
+/* trvalé úložiště: Android pak data aplikace sám nemaže */
+try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist()}catch(e){}
+/* offline režim */
+if('serviceWorker' in navigator){window.addEventListener('load',()=>navigator.serviceWorker.register('./sw.js').catch(()=>{}))}
+function buildCsv(){
+  const cell=v=>{v=v==null?'':String(v);return /[;"\n]/.test(v)?'"'+v.replace(/"/g,'""')+'"':v};
+  const dec=v=>v===''||v==null?'':String(num(v)).replace('.',',');
+  const lines=[['datum','zacatek','delka_min','trenink','cvik','typ_serie','serie','kg','opakovani','rpe','objem_kg'].join(';')];
+  S.workouts.slice().sort((a,b)=>a.start-b.start).forEach(w=>{
+    const d=new Date(w.start),p2=n=>String(n).padStart(2,'0'),date=p2(d.getDate())+'.'+p2(d.getMonth()+1)+'.'+d.getFullYear(),
+      time=d.toTimeString().slice(0,5),dur=Math.round((w.end-w.start)/60000),cnt={};
+    w.sets.forEach(s=>{const k=s.exId+s.type;cnt[k]=(cnt[k]||0)+1;
+      lines.push([date,time,dur,w.name,exName(s.exId),s.type==='A'?'aktivační':'pracovní',cnt[k],
+        dec(s.kg),s.reps,dec(s.rpe),dec((num(s.kg)||0)*(num(s.reps)||0))].map(cell).join(';'))});
+  });
+  return '﻿'+lines.join('\r\n');
+}
+function placeholderOf(i){const s=S.active.sets[i],prev=prevFor(s.exId);if(!prev)return null;
+  let n=0;for(let j=0;j<=i;j++){const t=S.active.sets[j];if(t.exId===s.exId&&t.type===s.type)n++}
+  const p=(s.type==='A'?prev.A:prev.W)[n-1];return p?{kg:String(num(p.kg)),reps:String(p.reps)}:null}
+function focusEmpty(i,s){render();const el=$(s.kg===''?'#kg'+i:'#rp'+i);el&&el.focus();}
+
+document.addEventListener('click',e=>{
+  const nb=e.target.closest('nav.bottom [data-tab]');
+  if(nb){ui.tab=nb.dataset.tab;ui.confirm=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
+  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  const name=b.dataset.act,wasConfirm=ui.confirm;
+  act[name](b.dataset.id,b);
+  if(wasConfirm!==null&&(wasConfirm===name||ui.confirm===wasConfirm))ui.confirm=null;
+  if(name==='check'&&S.active){const s=S.active.sets[+b.dataset.i];if(!s.done&&(s.kg===''||s.reps===''))return}
+  render();
+});
+function onField(e){
+  const t=e.target;
+  if(t.dataset.f&&S.active){S.active.sets[+t.dataset.i][t.dataset.f]=t.value.trim();save()}
+  if(t.dataset.ef&&ui.edit){const it=curItem(t);it[t.dataset.ef]=t.dataset.ef==='rest'?(parseInt(t.value)||0):t.value;save()}
+  if(t.dataset.rr&&ui.edit){curItem(t).rows[+t.dataset.j].reps=t.value;save()}
+  if(t.id==='rname'){S.routines.find(x=>x.id===ui.edit).name=t.value;save()}
+}
+document.addEventListener('change',e=>{
+  if(e.target.id!=='restoreFile'||!e.target.files[0])return;
+  const fr=new FileReader();
+  fr.onload=()=>{try{const j=JSON.parse(fr.result);
+      if(!j||!j.data||!Array.isArray(j.data.routines)||!Array.isArray(j.data.workouts)||!Array.isArray(j.data.exercises))throw 0;
+      ui.pending=j;ui.exportMsg=''}catch(err){ui.pending=null;ui.exportMsg='Soubor není platná záloha této aplikace.'}render()};
+  fr.readAsText(e.target.files[0]);
+});
+document.addEventListener('input',onField);
+document.addEventListener('change',onField);
+render();
+</script>
+
+</body>
+</html>
