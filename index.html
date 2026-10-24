@@ -34,7 +34,7 @@
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.4;
   -webkit-tap-highlight-color:transparent}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--bg)}
-button,input{font:inherit;color:inherit}
+button,input,textarea,select{font:inherit;color:inherit}
 button{cursor:pointer}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .wrap{max-width:560px;margin:0 auto;padding-left:max(16px,env(safe-area-inset-left,0px));
@@ -57,6 +57,31 @@ h2{font-family:var(--display);font-size:24px;margin:0;line-height:1.1;text-wrap:
 .btn.ghost{background:transparent}
 .btn.next{background:var(--ok);border-color:var(--ok);color:var(--surface)}
 .card.is-next{border-color:var(--ok)}
+.card.upd{gap:16px;padding:18px}
+.cal-head{flex-wrap:nowrap;margin-bottom:10px}
+.cal-head h2{text-transform:capitalize;font-size:22px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-variant-numeric:tabular-nums}
+.cw{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);padding-bottom:4px}
+.cd{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;min-height:46px;max-width:100%;border-radius:8px;font-size:15px;line-height:1.1;color:var(--fg);border:1px solid transparent;background:none;padding:0}
+.cd.on{background:var(--ok);color:var(--surface);font-weight:700;cursor:pointer}
+.cd.today{border-color:var(--accent)}
+.cn{font-size:9.5px;font-weight:600;letter-spacing:-.02em;white-space:pre;overflow:hidden;max-width:100%;opacity:.95}
+.cd.on.today{box-shadow:0 0 0 2px var(--surface) inset}
+.erows{grid-template-columns:44px minmax(0,1fr) minmax(0,1fr) 36px!important}
+.erows input{text-align:center}
+.ssl{display:inline-flex;align-items:center;justify-content:center;min-width:26px;height:22px;padding:0 4px;margin-right:6px;border-radius:6px;
+  font-family:var(--display);font-size:14px;color:var(--muted);background:var(--bg);border:1px solid var(--line);vertical-align:1px}
+.ssl.on{color:var(--accent);background:var(--accent-soft);border-color:transparent}
+.card.ss{border-left:4px solid var(--accent)}
+.sstag{font-family:var(--display);font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:4px}
+.sslink{align-self:center;border:1px dashed var(--line);background:transparent;color:var(--muted);border-radius:999px;padding:6px 14px;font-size:14px;min-height:36px;margin-block:-4px}
+.sslink.on{border-style:solid;border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.chg{display:flex;flex-direction:column;border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.chg .h{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding:8px 12px;background:var(--bg)}
+.chg-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 12px;border-top:1px solid var(--line);font-size:15px;font-variant-numeric:tabular-nums}
+.chg-row b{white-space:nowrap}
+.upd-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.upd-btns .btn{white-space:nowrap;padding-inline:8px}
 .chip.ok{background:var(--ok-bg);color:var(--ok)}
 .chip.off{background:var(--bg);color:var(--muted);border:1px solid var(--line)}
 .card.inactive{background:transparent;border-style:dashed}
@@ -71,17 +96,18 @@ h2{font-family:var(--display);font-size:24px;margin:0;line-height:1.1;text-wrap:
 .note{font-size:14px;color:var(--muted);background:var(--accent-soft);border-radius:10px;padding:10px 12px}
 
 /* aktivní trénink */
-.stats{display:flex;gap:18px;margin-bottom:14px;font-variant-numeric:tabular-nums}
-.stats div{display:flex;flex-direction:column}
-.stats b{font-family:var(--display);font-size:26px;line-height:1}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;margin-bottom:16px;padding-block:10px;border-block:1px solid var(--line);font-variant-numeric:tabular-nums}
+.stats div+div{border-left:1px solid var(--line);padding-left:14px}
+.stats div{display:flex;flex-direction:column;gap:4px}
+.stats b{font-family:var(--display);font-size:28px;line-height:1}
 .stats span{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
 .ex h2{font-size:22px}
 .meta{font-size:13px;color:var(--muted);margin:2px 0 8px}
 .hint{font-size:13px;color:var(--ok);font-weight:600;margin:-4px 0 8px}
 .exnote{font-size:14px;margin:0 0 10px;padding:8px 10px;border-left:3px solid var(--line);color:var(--fg);white-space:pre-wrap}
-.sets{display:grid;grid-template-columns:30px minmax(0,1fr) 60px 50px 58px 40px;gap:6px 5px;align-items:center;font-variant-numeric:tabular-nums}
+.sets{display:grid;grid-template-columns:20px minmax(0,1fr) 52px 40px 48px 38px;gap:6px 4px;align-items:center;font-variant-numeric:tabular-nums}
 .sets select{width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;background:var(--bg);font-size:15px;font-weight:600;text-align:center;padding:0 2px;color:var(--fg)}
-.prev small{display:block;font-size:12px;opacity:.85}
+.prev small{font-size:11.5px;opacity:.85;margin-left:2px}
 .rl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:15px;margin:8px 0 12px;font-variant-numeric:tabular-nums}
 .rl .v{color:var(--muted);text-align:right}
 .erows{display:grid;grid-template-columns:44px minmax(0,1fr) 36px;gap:6px;align-items:center;margin-top:8px}
@@ -93,7 +119,7 @@ textarea.txt{min-height:64px;padding:8px 12px;resize:vertical;line-height:1.4}
 .sets .h{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);padding-bottom:2px}
 .lbl{font-family:var(--display);font-size:18px;text-align:center;border-radius:6px;padding:6px 0}
 .lbl.a{color:var(--muted);font-size:15px}
-.prev{background:none;border:none;text-align:left;color:var(--muted);padding:8px 2px;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prev{background:none;border:none;text-align:left;color:var(--muted);padding:8px 0;font-size:13.5px;letter-spacing:-.02em;white-space:nowrap;overflow:hidden;text-overflow:clip;min-width:0}
 .sets input{width:100%;min-height:40px;border:1px solid var(--line);border-radius:8px;background:var(--bg);text-align:center;font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;padding:0 4px}
 .sets input::placeholder{color:var(--muted);font-weight:400;opacity:.7}
 .chk{min-height:40px;border-radius:8px;border:1px solid var(--line);background:var(--bg);font-size:20px;line-height:1;color:var(--muted)}
@@ -244,7 +270,7 @@ const PLAN=[
   ['Kladivový zdvih',0,2,'10–12',75,'']]],
  ['Legs B',[
   ['Lýtka vsedě',1,3,'12–20',75,'Dole pauza 1–2 s v natažení.'],
-  ['Bulharský dřep',1,2,'8–10 / nohu',120,'Zadní noha na lavici, jednoručky v rukou.'],
+  ['Bulharský dřep',1,2,'8–10',120,'Zadní noha na lavici, jednoručky v rukou. Opakování na každou nohu.'],
   ['Hyperextenze 45°',0,3,'10–15',90,'Ohýbej se v kyčlích, ne v bedrech. Jednoručka na hrudi.'],
   ['Předkopávání',0,2,'12–15',30,'Supersérie se zakopáváním vsedě.'],
   ['Zakopávání vsedě',0,2,'8–12',90,'Supersérie s předkopáváním.'],
@@ -293,6 +319,31 @@ function applyPlan(S){
   S.planV=PLAN_V;
 }
 
+/* cílová opakování: jen celé číslo */
+function cleanReps(v){return String(v??'').replace(/\D/g,'').replace(/^0+(?=\d)/,'').slice(0,3)}
+/* převod textu/rozsahu na celé číslo: rozsah -> střed (x,5 se zaokrouhluje nahoru) */
+function midReps(v){const n=String(v??'').match(/\d+/g);if(!n)return '';
+  return String(n.length>1?Math.round((+n[0]+ +n[1])/2):+n[0])}
+function numericReps(S){
+  S.routines.forEach(r=>r.items.forEach(it=>{
+    let perLeg=false;
+    it.rows.forEach(row=>{if(/nohu/i.test(row.reps||''))perLeg=true;row.reps=midReps(row.reps)});
+    if(perLeg&&!/na (každou )?nohu/i.test(it.note||''))it.note=(it.note?it.note+' · ':'')+'Opakování na každou nohu.';
+  }));
+  if(S.active)S.active.sets.forEach(x=>{if(x.target!=null)x.target=midReps(x.target)});
+  S.repsInt=true;
+}
+/* pauza podle typu cviku: izolovaný (malá partie) 90 s, komplexní 150 s */
+const ISO=/zdvih|raise|curl|pushdown|extension|triceps(?! dip)|face pull|lýtk|předkopáv|zakopáv|reverse fly|rozpažov|shrug|hyperextenz/i;
+const isIso=name=>ISO.test(name||'');
+const restFor=name=>isIso(name)?90:150;
+/* první cvik supersérie má jen krátký přechod na druhý cvik – ten se nemění */
+const ssTransition=it=>/Supersérie/i.test(it.note||'')&&it.rest<=45;
+function setRests(S){
+  S.routines.forEach(r=>r.items.forEach(it=>{if(!ssTransition(it))it.rest=restFor(exName0(S,it.exId))}));
+  S.restV=1;
+}
+const isActive=r=>r.active!==false;
 let S=load()||seed();
 if(!S.planV||S.planV<2){applyPlan(S);save()}else if(S.planV<PLAN_V){addRpe(S);save()}
 /* verze 4: bez aktivačních sérií – před změnou se uloží kopie původních dat */
@@ -301,6 +352,47 @@ function dropActivation(S){
   if(S.active)S.active.sets=S.active.sets.filter(x=>x.type!=='A');
   S.noAct=true;
 }
+if(!S.repsInt){try{localStorage.setItem(KEY+'-pred-v5',JSON.stringify(S))}catch(e){}numericReps(S);save()}
+if(!S.restV){try{localStorage.setItem(KEY+'-pred-v6',JSON.stringify(S))}catch(e){}setRests(S);save()}
+/* verze 7: názvy cviků podle rozpisu PPL (24. 10.) */
+const RENAME={
+ 'Tlak nad hlavu s jednoručkami':'Shoulder press (jednoručky)',
+ 'Šikmý tlak s jednoručkami':'Incline bench press (jednoručky)',
+ 'Boční zdvihy s jednoručkami':'Lateral raise (jednoručky)',
+ 'Triceps na kladce':'Triceps pushdown',
+ 'Stahování kladky (lat pulldown)':'Lat pulldown',
+ 'Přítahy kladky vsedě – rovná tyč':'Seated cable row (rovná tyč, širší úchop)',
+ 'Bicepsový zdvih':'Bicep curl (jednoručky)',
+ 'Bicepsový zdvih na šikmé lavici':'Incline curl',
+ 'Zakopávání vsedě':'Zakopávání v sedu',
+ 'Lýtka vsedě':'Lýtka v sedu',
+ 'Tlak s jednoručkami':'Bench press (jednoručky)',
+ 'Dipy na bradlech':'Triceps dip (se zátěží)',
+ 'Tlak nad hlavu na stroji':'Seated shoulder press (stroj)',
+ 'Boční zdvihy na kladce':'Single arm lateral raise (kladka)',
+ 'Triceps nad hlavou na kladce':'Overhead triceps extension (kladka nebo jednoručka)',
+ 'Shyby úzkým / neutrálním úchopem':'Shyby úzkým / neutrálním úchopem (případně asistované)',
+ 'Přítahy kladky vsedě – V úchop':'Seated cable row (V-úchop)',
+ 'Přítahy jednoruček s oporou hrudi':'Chest-supported DB row',
+ 'EZ bicepsový zdvih':'EZ bar curl',
+ 'Reverse fly':'Rear delt reverse fly',
+ 'Kladivový zdvih':'Hammer curl',
+ 'Hyperextenze 45°':'Hyperextenze na 45° (s jednoručkou)'
+};
+/* odkazy na partnera supersérie v popisech */
+const NOTE_FIX=[['s bicepsovým zdvihem','s Bicep curl'],['s Reverse fly','s Rear delt reverse fly'],['s EZ zdvihem','s EZ bar curl'],
+ ['s bočními zdvihy na kladce','se Single arm lateral raise'],['s bočními zdvihy','s Lateral raise'],['s lýtky vsedě','s lýtky v sedu'],
+ ['se zakopáváním vsedě','se zakopáváním v sedu']];
+function renameEx(S){
+  S.exercises.forEach(e=>{const n=RENAME[e.name];if(n&&!S.exercises.some(x=>x!==e&&x.name===n))e.name=n});
+  S.routines.forEach(r=>r.items.forEach(it=>{let t=it.note||'';NOTE_FIX.forEach(([a,b])=>{t=t.split(a).join(b)});it.note=t}));
+  S.namesV=7;
+}
+if(!S.namesV){try{localStorage.setItem(KEY+'-pred-v7',JSON.stringify(S))}catch(e){}renameEx(S);save()}
+if(!S.ssV){S.routines.forEach(r=>r.items.forEach((it,k)=>{if(ssTransition(it)&&r.items[k+1])it.ss=true}));S.ssV=1;save()}
+if(!S.delInact){try{localStorage.setItem(KEY+'-pred-v8',JSON.stringify(S))}catch(e){}S.routines=S.routines.filter(isActive);S.delInact=1;save()}
+/* jednorázové smazání historie (na přání 24. 10.), se zálohou */
+if(!S.histClr){try{localStorage.setItem(KEY+'-pred-v9',JSON.stringify(S))}catch(e){}S.workouts=[];S.sample=false;S.histClr=1;save()}
 if(!S.noAct){try{localStorage.setItem(KEY+'-pred-v4',JSON.stringify(S))}catch(e){}dropActivation(S);save()}
 const ui={tab:'routines',edit:null,confirm:null};
 
@@ -314,9 +406,19 @@ function prevFor(exId){
 const vol=sets=>sets.filter(s=>s.done).reduce((a,s)=>a+(num(s.kg)||0)*(num(s.reps)||0),0);
 const fmtVol=v=>v>=1000?(v/1000).toLocaleString('cs-CZ',{maximumFractionDigits:1})+' t':Math.round(v)+' kg';
 const fmtSet=s=>s?`${num(s.kg)??0} × ${s.reps}${s.rpe?' @'+rpeTxt(s.rpe):''}`:'—';
+const kgTxt=v=>String(v).replace('.',',');
 const rowsSummary=it=>{const w=it.rows.filter(r=>r.type==='W');
-  const rng=[...new Set(w.map(r=>r.reps).filter(Boolean))].join(', ');
-  return `${w.length} ${w.length===1?'série':w.length<5?'série':'sérií'}${rng?' · '+rng:''}`};
+  const rs=[...new Set(w.map(r=>r.reps).filter(Boolean))];
+  const ks=[...new Set(w.map(r=>r.kg).filter(v=>v!==''&&v!=null))];
+  const kg=ks.length?' · '+ks.map(kgTxt).join('/')+' kg':'';
+  if(rs.length===1)return `${w.length} × ${rs[0]}${kg}`;
+  return `${w.length} ${w.length>=5?'sérií':'série'}${rs.length?' · '+rs.join(', '):''}${kg}`};
+/* cílová váha: číslo s nejvýš jedním desetinným oddělovačem */
+function cleanKg(v){let t=String(v??'').replace(',','.').replace(/[^\d.]/g,'');const k=t.indexOf('.');
+  if(k>=0)t=t.slice(0,k+1)+t.slice(k+1).replace(/\./g,'').slice(0,2);return t.slice(0,6)}
+/* supersérie: it.ss = cvik je spojený s následujícím; štítky 1, 2, 3a, 3b… */
+function groupLabels(items){let n=0,l=0;return items.map((it,k)=>{const linked=k>0&&items[k-1].ss;
+  if(linked)l++;else{n++;l=0}const inSS=linked||(it.ss&&k<items.length-1);return {lab:inSS?n+'abcdefgh'[l]:String(n),inSS,first:inSS&&!linked}})}
 const rowLabels=rows=>{let a=0,w=0;return rows.map(r=>r.type==='A'?'A'+(++a):String(++w))};
 
 /* ---------- rendering ---------- */
@@ -331,23 +433,21 @@ function render(){
   ui.tab==='history'?renderHistory():renderRoutines();
 }
 
-/* další rutina = první AKTIVNÍ rutina, která v pořadí následuje po naposledy odcvičené (dokola) */
-const isActive=r=>r.active!==false;
+/* další rutina = ta, která v pořadí následuje po naposledy odcvičené (dokola) */
 function nextRoutineId(){
-  const rs=S.routines,n=rs.length;if(!rs.some(isActive))return null;
+  const rs=S.routines;if(!rs.length)return null;
   const last=S.workouts.slice().sort((a,b)=>b.start-a.start).find(w=>rs.some(r=>r.id===w.routineId));
-  if(!last)return rs.find(isActive).id;
+  if(!last)return rs[0].id;
   const i=rs.findIndex(r=>r.id===last.routineId);
-  for(let k=1;k<=n;k++){const r=rs[(i+k)%n];if(isActive(r))return r.id}
-  return null;
+  return rs[(i+1)%rs.length].id;
 }
 function renderRoutines(){
-  const nextId=nextRoutineId(), act=S.routines.filter(isActive), ina=S.routines.filter(r=>!isActive(r));
-  const exl=r=>`<div class="rl">${r.items.map(i=>`<span>${esc(exName(i.exId))}</span><span class="v">${esc(rowsSummary(i))}</span>`).join('')||'<span class="sub">Bez cviků</span>'}</div>`;
+  const nextId=nextRoutineId(), act=S.routines;
+  const exl=r=>{const g=groupLabels(r.items);return `<div class="rl">${r.items.map((i,k)=>`<span><span class="ssl${g[k].inSS?' on':''}">${g[k].lab}</span>${esc(exName(i.exId))}</span><span class="v">${esc(rowsSummary(i))}</span>`).join('')||'<span class="sub">Bez cviků</span>'}</div>`};
   const mv=(r,k,len)=>`<button class="iconbtn" type="button" data-act="moveR" data-id="${r.id}" data-d="-1" aria-label="Posunout nahoru" ${k?'':'disabled'}>▲</button>
       <button class="iconbtn" type="button" data-act="moveR" data-id="${r.id}" data-d="1" aria-label="Posunout dolů" ${k<len-1?'':'disabled'}>▼</button>`;
   $('#app').innerHTML=`<header class="top"><h1>Rutiny</h1>
-    <button class="btn small" type="button" data-act="newRoutine">+ Nová</button></header>
+    <button class="btn small" type="button" data-act="newRoutine">+ Nová rutina</button></header>
   <div class="stack">${act.map((r,k)=>{
     const last=S.workouts.find(w=>w.routineId===r.id), isNext=r.id===nextId;
     return `<div class="card${isNext?' is-next':''}">
@@ -356,14 +456,56 @@ function renderRoutines(){
       ${exl(r)}
       <div class="row"><button class="btn ${isNext?'next':'primary'} grow" type="button" data-act="start" data-id="${r.id}">Začít trénink</button>
       <button class="btn" type="button" data-act="edit" data-id="${r.id}">Upravit</button></div>
-    </div>`}).join('')||'<div class="card sub">Žádná aktivní rutina. Aktivuj některou níže, nebo vytvoř novou.</div>'}
-  ${ina.length?`<h3 class="sect">Neaktivní</h3>${ina.map((r,k)=>`<div class="card inactive">
-      <div class="row"><h2 class="grow">${esc(r.name)}</h2><span class="chip off">Neaktivní</span>${mv(r,k,ina.length)}</div>
-      ${exl(r)}
-      <div class="row"><button class="btn grow" type="button" data-act="toggleActive" data-id="${r.id}">Aktivovat</button>
-      <button class="btn" type="button" data-act="edit" data-id="${r.id}">Upravit</button></div>
-    </div>`).join('')}`:''}
+    </div>`}).join('')||'<div class="card sub">Zatím žádná rutina. Vytvoř ji tlačítkem + Nová rutina.</div>'}
   </div>`;
+}
+/* porovnání tréninku s rutinou: počty sérií (a volitelně opakování) */
+function routineDiff(w,takeReps){
+  const r=S.routines.find(x=>x.id===w.routineId);if(!r)return null;
+  const changes=[],skipped=[],next=[];
+  r.items.forEach(it=>{
+    const done=w.sets.filter(s=>s.exId===it.exId&&s.type==='W');
+    const rows=it.rows.map(x=>({...x}));
+    if(!done.length){skipped.push(exName(it.exId));next.push(rows);return}
+    let nr=rows.slice(0,done.length);
+    while(nr.length<done.length)nr.push({type:'W',reps:(nr[nr.length-1]||{reps:'8'}).reps});
+    if(takeReps)nr=nr.map((x,k)=>({...x,reps:cleanReps(done[k].reps)||x.reps,kg:cleanKg(done[k].kg)||x.kg||''}));
+    const before=rowsSummary(it),after=rowsSummary({rows:nr});
+    if(before!==after||nr.some((x,k)=>!rows[k]||rows[k].reps!==x.reps||(rows[k].kg||'')!==(x.kg||'')))changes.push(`${exName(it.exId)}: ${before} → ${after}`);
+    next.push(nr);
+  });
+  return {r,changes,skipped,next};
+}
+function renderUpdateCard(){
+  const w=S.workouts.find(x=>x.id===ui.upd);if(!w)return '';
+  const d=routineDiff(w,ui.updReps);
+  if(!d)return `<div class="card stack"><b>Rutina „${esc(w.name)}“ už neexistuje.</b><div class="row"><button class="btn small ghost" type="button" data-act="updNo">Zavřít</button></div></div>`;
+  return `<div class="card stack upd is-next"><h2>Aktualizovat rutinu ${esc(d.r.name)}?</h2>
+    <div class="sub">Podle tréninku z ${fmtD(w.start)}</div>
+    <label class="row" style="gap:10px;font-size:15px;flex-wrap:nowrap;cursor:pointer"><input type="checkbox" id="updReps" ${ui.updReps?'checked':''} style="width:22px;height:22px;flex:none;margin:0"><span>Převzít i odcvičená opakování a váhy jako nové cíle</span></label>
+    ${d.changes.length?`<div class="chg"><div class="h">Změny v rutině</div>${d.changes.map(c=>{const [n,v]=c.split(': ');return `<div class="chg-row"><span>${esc(n)}</span><b>${esc(v)}</b></div>`}).join('')}</div>`:'<div class="sub">Rutina už tréninku odpovídá, není co měnit.</div>'}
+    ${d.skipped.length?`<div class="sub">Neodcvičené cviky zůstanou beze změny: ${esc(d.skipped.join(', '))}.</div>`:''}
+    <div class="upd-btns"><button class="btn primary" type="button" data-act="updNo" autofocus>${d.changes.length?'Ponechat rutinu':'Zavřít'}</button>${d.changes.length?'<button class="btn" type="button" data-act="updYes">Uložit do rutiny</button>':''}</div></div>`;
+}
+/* ---------- kalendář tréninků ---------- */
+const MONTHS=['leden','únor','březen','duben','květen','červen','červenec','srpen','září','říjen','listopad','prosinec'];
+const dayKey=t=>{const d=new Date(t);return d.getFullYear()+'-'+(d.getMonth()+1)+'-'+d.getDate()};
+function renderCalendar(){
+  const now=new Date();if(ui.calM==null)ui.calM=now.getFullYear()*12+now.getMonth();
+  const y=Math.floor(ui.calM/12),m=ui.calM%12,first=new Date(y,m,1),days=new Date(y,m+1,0).getDate();
+  const lead=(first.getDay()+6)%7;/* pondělí první */
+  const byDay={};S.workouts.forEach(w=>{const k=dayKey(w.start);(byDay[k]=byDay[k]||[]).push(w)});
+  const inMonth=S.workouts.filter(w=>{const d=new Date(w.start);return d.getFullYear()===y&&d.getMonth()===m});
+  const today=dayKey(now.getTime());
+  let cells='';for(let i=0;i<lead;i++)cells+='<span></span>';
+  for(let d=1;d<=days;d++){const k=y+'-'+(m+1)+'-'+d,ws=byDay[k];
+    cells+=ws?`<button type="button" class="cd on${k===today?' today':''}" data-act="calDay" data-id="${ws[0].id}" title="${esc(ws.map(w=>w.name).join(', '))}">${d}<small class="cn">${esc([...ws[0].name].slice(0,6).join(''))}</small></button>`
+             :`<span class="cd${k===today?' today':''}">${d}</span>`}
+  return `<div class="card cal">
+    <div class="row cal-head"><button class="iconbtn" type="button" data-act="calMove" data-d="-1" aria-label="Předchozí měsíc">‹</button>
+      <h2 class="grow">${MONTHS[m]} ${y}</h2><span class="sub">${inMonth.length} ${inMonth.length===1?'trénink':inMonth.length>=2&&inMonth.length<=4?'tréninky':'tréninků'}</span>
+      <button class="iconbtn" type="button" data-act="calMove" data-d="1" aria-label="Další měsíc">›</button></div>
+    <div class="cal-grid">${['po','út','st','čt','pá','so','ne'].map(d=>`<span class="cw">${d}</span>`).join('')}${cells}</div></div>`;
 }
 function renderHistory(){
   const ws=S.workouts;
@@ -374,26 +516,43 @@ function renderHistory(){
   ${ui.csvText?`<div class="card stack"><div class="sub">Ukládání souboru tady není dostupné. Zkopíruj obsah a vlož ho do souboru s příponou ${ui.dumpExt||'.csv'}.</div>
     <textarea class="txt" id="csvOut" readonly style="min-height:160px;font-family:ui-monospace,monospace;font-size:12px">${esc(ui.csvText)}</textarea>
     <div class="row"><button class="btn small" type="button" data-act="copyCsv">Kopírovat</button><button class="btn small ghost" type="button" data-act="closeCsv">Zavřít</button></div></div>`:''}
+  ${renderCalendar()}
   <div class="sub">${ws.length} tréninků</div>
   ${S.sample&&ws.some(w=>w.sample)?`<div class="note">Tréninky označené „ukázka“ jsou vymyšlené hodnoty, aby byl vidět sloupec „Minule“.
     <div class="row" style="margin-top:8px"><button class="btn small" type="button" data-act="clearSample">${ui.confirm==='clearSample'?'Opravdu smazat ukázky?':'Smazat ukázky'}</button></div></div>`:''}
   ${ui.pending?`<div class="card stack is-next"><b>Obnovit ze zálohy?</b>
     <div class="sub">Záloha z ${fmtD(ui.pending.exported)}: ${ui.pending.data.routines.length} rutin, ${ui.pending.data.workouts.length} tréninků. Současná data v aplikaci se nahradí.</div>
     <div class="row"><button class="btn next" type="button" data-act="restoreYes">Obnovit</button><button class="btn ghost" type="button" data-act="restoreNo">Zrušit</button></div></div>`:''}
+  ${ui.upd?renderUpdateCard():''}
+  ${ui.hevy?(()=>{const h=ui.hevy,nw=h.exNames.filter(n=>!h.known.includes(n));return `<div class="card stack upd is-next"><h2>Importovat z Hevy?</h2>
+    <div class="chg"><div class="h">Obsah souboru</div>
+      <div class="chg-row"><span>Tréninky</span><b>${h.ws.length} (${fmtD(h.from)} – ${fmtD(h.to)})</b></div>
+      <div class="chg-row"><span>Nové k importu</span><b>${h.fresh.length}</b></div>
+      ${h.dup?`<div class="chg-row"><span>Už v historii, přeskočí se</span><b>${h.dup}</b></div>`:''}
+      <div class="chg-row"><span>Cviky napárované na tvoje</span><b>${h.known.length}</b></div>
+      <div class="chg-row"><span>Nové cviky</span><b>${nw.length}</b></div></div>
+    ${nw.length?`<div class="sub">Nové cviky: ${esc(nw.map(h.target).join(', '))}.</div>`:''}
+    <div class="upd-btns"><button class="btn" type="button" data-act="hevyNo">Zrušit</button>${h.fresh.length?'<button class="btn primary" type="button" data-act="hevyYes">Importovat</button>':''}</div></div>`})():''}
   ${ws.length?'':'<div class="card sub">Zatím žádný trénink. Začni některou rutinu na kartě Rutiny.</div>'}
   ${ws.map(w=>{
     const exIds=[...new Set(w.sets.map(s=>s.exId))];
-    return `<details class="card hist"><summary>
+    return `<details class="card hist" id="w-${w.id}"${ui.openW===w.id?' open':''}><summary>
       <div class="row"><span class="chip">${fmtD(w.start)}</span><h2 class="grow">${esc(w.name)}</h2>${w.sample?'<span class="sub">ukázka</span>':''}</div>
       <div class="stats" style="margin:10px 0 0"><div><b>${Math.round((w.end-w.start)/60000)}</b><span>min</span></div>
       <div><b>${w.sets.filter(s=>s.type==='W').length}</b><span>sérií</span></div><div><b>${fmtVol(vol(w.sets))}</b><span>objem</span></div></div></summary>
       <div class="hl">${exIds.map(id=>`<span class="n">${esc(exName(id))}</span><span class="v">${w.sets.filter(s=>s.exId===id&&s.type==='W').map(fmtSet).join(', ')}</span>`).join('')}</div>
+      ${!w.sample&&S.routines.some(r=>r.id===w.routineId)?`<div class="row" style="margin-top:12px"><button class="btn small" type="button" data-act="updOpen" data-id="${w.id}">Aktualizovat rutinu podle tréninku</button></div>`:''}
     </details>`}).join('')}
+  ${ws.length?`<button class="btn danger wide" type="button" data-act="clearHistory">${ui.confirm==='clearHistory'?'Opravdu smazat celou historii?':'Smazat historii'}</button>`:''}
   <div class="card stack"><h2>Záloha dat</h2>
     <div class="sub">Celá data aplikace (rutiny, cviky, historie) v jednom souboru JSON. Ulož si ho třeba na Google Disk.</div>
     <div class="row"><button class="btn primary" type="button" data-act="backup">Stáhnout zálohu</button>
     <button class="btn" type="button" data-act="restore">Obnovit ze zálohy</button></div>
     <input type="file" id="restoreFile" accept=".json,application/json" hidden></div>
+  <div class="card stack"><h2>Import z Hevy</h2>
+    <div class="sub">V Hevy dej Nastavení → Export &amp; Import Data → Export Workouts. Stažený soubor workouts.csv sem nahraj. Tréninky se přidají k historii, už naimportované se přeskočí.</div>
+    <div class="row"><button class="btn" type="button" data-act="hevyOpen">Vybrat soubor CSV</button></div>
+    <input type="file" id="hevyFile" accept=".csv,text/csv" hidden></div>
   </div>`;
 }
 
@@ -407,25 +566,28 @@ function renderWorkout(){
     <div><b>${done}/${a.sets.length}</b><span>sérií</span></div><div><b>${fmtVol(vol(a.sets))}</b><span>objem</span></div></div>
   <div class="stack">${exIds.map(exId=>{
     const it=r.items.find(i=>i.exId===exId)||{rows:[],rest:120,note:''};
+    const gi=r.items.indexOf(it),g=gi>=0?groupLabels(r.items)[gi]:{lab:'',inSS:false};
+    const nextEx=g.inSS&&it.ss&&r.items[gi+1]?exName(r.items[gi+1].exId):'';
     const prev=prevFor(exId);
     const max=Math.max(0,...it.rows.filter(x=>x.type==='W').map(x=>Number(String(x.reps).split(/[–-]/).pop())||0));
     const hit=prev&&prev.W.length&&max&&prev.W.every(s=>num(s.reps)>=max);
     let ai=0,wi=0;
     const rows=a.sets.map((s,i)=>{if(s.exId!==exId)return '';
-      const isA=s.type==='A', n=isA?++ai:++wi, p=prev?(isA?prev.A[n-1]:prev.W[n-1]):null;
+      const isA=s.type==='A', n=isA?++ai:++wi, p=prev?(isA?prev.A[n-1]:prev.W[n-1]):null, ph=placeholderOf(i)||{};
       const dc=s.done?' done-row':'';
       return `<div class="lbl${isA?' a':''}${dc}">${isA?'A'+n:n}</div>
         <button class="prev" type="button" data-act="copy" data-i="${i}" ${p?'':'disabled'} aria-label="Použít minulé hodnoty">${p?`${num(p.kg)}×${p.reps}${p.rpe?`<small>@${rpeTxt(p.rpe)}</small>`:''}`:'—'}</button>
-        <input id="kg${i}" inputmode="decimal" data-f="kg" data-i="${i}" value="${esc(s.kg)}" placeholder="${p?num(p.kg):'kg'}" aria-label="kg">
-        <input id="rp${i}" inputmode="numeric" data-f="reps" data-i="${i}" value="${esc(s.reps)}" placeholder="${p?p.reps:(s.target||'opak.')}" aria-label="opakování">
+        <input id="kg${i}" inputmode="decimal" data-f="kg" data-i="${i}" value="${esc(s.kg)}" placeholder="${ph.kg||'kg'}" aria-label="kg">
+        <input id="rp${i}" inputmode="numeric" data-f="reps" data-i="${i}" value="${esc(s.reps)}" placeholder="${ph.reps||'opak.'}" aria-label="opakování">
         <select id="rpe${i}" data-f="rpe" data-i="${i}" aria-label="RPE"><option value="">–</option>${RPE.map(v=>`<option value="${v}"${String(s.rpe)===v?' selected':''}>${rpeTxt(v)}</option>`).join('')}</select>
         <button class="chk${s.done?' on':''}" type="button" data-act="check" data-i="${i}" aria-label="Série hotová" aria-pressed="${s.done}">✓</button>`}).join('');
-    return `<div class="card ex">
+    return `<div class="card ex${g.inSS?' ss':''}">
+      ${g.inSS?`<div class="sstag">Supersérie ${g.lab}${nextEx?` · pak hned ${esc(nextEx)}`:''}</div>`:''}
       <h2>${esc(exName(exId))}</h2>
       <div class="meta">${esc(rowsSummary(it))} · pauza ${fmtT(it.rest)}${prev?' · minule '+fmtD(prev.date):''}</div>
       ${it.note?`<div class="exnote">${esc(it.note)}</div>`:''}
       ${hit?'<div class="hint">Minule jsi dal horní hranici opakování. Zkus přidat váhu.</div>':''}
-      <div class="sets"><span class="h">Sér.</span><span class="h">Minule</span><span class="h">kg</span><span class="h">Opak.</span><span class="h">RPE</span><span class="h"></span>${rows}</div>
+      <div class="sets"><span class="h">#</span><span class="h">Minule</span><span class="h">kg</span><span class="h">Opak.</span><span class="h">RPE</span><span class="h"></span>${rows}</div>
       <div class="row addset"><button class="btn small ghost" type="button" data-act="addSet" data-ex="${exId}">+ Série</button></div>
     </div>`}).join('')}
     <button class="btn danger wide" type="button" data-act="discard">${ui.confirm==='discard'?'Opravdu zahodit trénink?':'Zahodit trénink'}</button>
@@ -433,28 +595,32 @@ function renderWorkout(){
 }
 
 function renderEditor(){
-  const r=S.routines.find(x=>x.id===ui.edit);
-  $('#app').innerHTML=`<header class="top"><h1>Úprava rutiny</h1><button class="btn primary small" type="button" data-act="closeEdit">Hotovo</button></header>
+  const r=editR(),isNew=!!(ui.draft&&ui.draft.id===r.id);
+  $('#app').innerHTML=`<header class="top"><h1>${isNew?'Nová rutina':'Úprava rutiny'}</h1>${isNew
+    ?'<button class="btn primary small" type="button" data-act="createRoutine">Vytvořit</button>'
+    :'<button class="btn primary small" type="button" data-act="closeEdit">Hotovo</button>'}</header>
   <div class="stack">
-    <div class="card"><input class="txt" id="rname" value="${esc(r.name)}" aria-label="Název rutiny" placeholder="Název rutiny"></div>
-    ${r.items.map((it,i)=>{const lb=rowLabels(it.rows);return `<div class="card">
-      <div class="row"><h2 class="grow">${esc(exName(it.exId))}</h2>
+    <div class="card stack" style="gap:6px"><label class="sub" for="rname">Název rutiny</label><input class="txt" id="rname" value="${esc(r.name)}" placeholder="např. Push A" ${isNew&&!r.name?'autofocus':''}>
+      ${ui.err?`<div style="color:var(--danger);font-size:14px">${esc(ui.err)}</div>`:''}</div>
+    ${(()=>{const g=groupLabels(r.items);return r.items.map((it,i)=>{const lb=rowLabels(it.rows);return `<div class="card${g[i].inSS?' ss':''}">
+      <div class="row"><span class="ssl${g[i].inSS?' on':''}">${g[i].lab}</span><h2 class="grow">${esc(exName(it.exId))}</h2>
         <button class="iconbtn" type="button" data-act="up" data-i="${i}" aria-label="Posunout nahoru" ${i?'':'disabled'}>▲</button>
         <button class="iconbtn" type="button" data-act="del" data-i="${i}" aria-label="Odebrat cvik">✕</button></div>
       <textarea class="txt" id="note${i}" data-ef="note" data-i="${i}" style="margin-top:10px" placeholder="Popis cviku: technika, nastavení stroje, na co si dát pozor">${esc(it.note)}</textarea>
-      <div class="erows"><span class="h">Série</span><span class="h">Cílová opakování</span><span></span>
+      <div class="erows"><span class="h">Série</span><span class="h">Opakování</span><span class="h">Cílová váha kg</span><span></span>
         ${it.rows.map((row,j)=>`<span class="tbtn" style="display:flex;align-items:center;justify-content:center">${lb[j]}</span>
-        <input id="rr${i}_${j}" data-rr="1" data-i="${i}" data-j="${j}" value="${esc(row.reps)}" placeholder="např. 6–10">
+        <input id="rr${i}_${j}" data-rr="1" data-i="${i}" data-j="${j}" value="${esc(row.reps)}" inputmode="numeric" pattern="[0-9]*" maxlength="3" autocomplete="off" placeholder="např. 8">
+        <input id="rk${i}_${j}" data-rk="1" data-i="${i}" data-j="${j}" value="${esc(row.kg||'')}" inputmode="decimal" maxlength="6" autocomplete="off" placeholder="kg">
         <button class="iconbtn" type="button" data-act="delRow" data-i="${i}" data-j="${j}" aria-label="Odebrat sérii">✕</button>`).join('')}
       </div>
       <div class="row" style="margin-top:10px"><button class="btn small" type="button" data-act="addRow" data-i="${i}" data-t="W">+ Série</button>
         <span class="grow"></span>
         <label class="sub row" style="gap:6px">Pauza <input id="p${i}" class="txt" style="width:70px;min-height:36px;text-align:center" inputmode="numeric" data-ef="rest" data-i="${i}" value="${it.rest}"> s</label></div>
-    </div>`}).join('')||'<div class="card sub">Zatím žádné cviky.</div>'}
+    </div>${i<r.items.length-1?`<button class="sslink${it.ss?' on':''}" type="button" data-act="ssToggle" data-i="${i}">${it.ss?'Supersérie · zrušit spojení':'+ Spojit s dalším cvikem do supersérie'}</button>`:''}`}).join('')})()||'<div class="card sub">Zatím žádné cviky.</div>'}
     <div class="card row"><input class="txt grow" id="newEx" list="exnames" placeholder="Přidat cvik (vyber nebo napiš nový)">
       <button class="btn" type="button" data-act="addEx">Přidat</button></div>
-    <button class="btn wide" type="button" data-act="toggleActive">${isActive(r)?'Deaktivovat rutinu':'Aktivovat rutinu'}</button>
-    <button class="btn danger wide" type="button" data-act="delRoutine">${ui.confirm==='delRoutine'?'Opravdu smazat rutinu?':'Smazat rutinu'}</button>
+    ${isNew?`<div class="upd-btns"><button class="btn" type="button" data-act="cancelNew">Zrušit</button><button class="btn primary" type="button" data-act="createRoutine">Vytvořit rutinu</button></div>`
+      :`<button class="btn danger wide" type="button" data-act="delRoutine">${ui.confirm==='delRoutine'?'Opravdu smazat rutinu?':'Smazat rutinu'}</button>`}
   </div>`;
 }
 
@@ -468,14 +634,15 @@ setInterval(()=>{tickRest();const el=$('#elapsed');if(el&&S.active)el.textConten
 $('#restMinus').onclick=()=>{restEnd-=15000;tickRest()};
 $('#restPlus').onclick=()=>{restEnd+=15000;tickRest()};
 $('#restSkip').onclick=stopRest;
-const curItem=el=>S.routines.find(x=>x.id===ui.edit).items[+el.dataset.i];
+const editR=()=>ui.draft&&ui.draft.id===ui.edit?ui.draft:S.routines.find(x=>x.id===ui.edit);
+const curItem=el=>editR().items[+el.dataset.i];
 
 const act={
   start(id){const r=S.routines.find(x=>x.id===id);const sets=[];
-    r.items.forEach(it=>it.rows.forEach(row=>sets.push({exId:it.exId,type:row.type,target:row.reps,kg:'',reps:'',rpe:'',done:false})));
+    r.items.forEach(it=>it.rows.forEach(row=>sets.push({exId:it.exId,type:row.type,target:row.reps,tkg:row.kg||'',kg:'',reps:'',rpe:'',done:false})));
     S.active={id:uid(),routineId:r.id,name:r.name,start:Date.now(),sets};save();window.scrollTo(0,0);
     try{navigator.wakeLock&&navigator.wakeLock.request('screen').then(l=>wake=l).catch(()=>{})}catch(e){}},
-  copy(_,el){const s=S.active.sets[+el.dataset.i],p=placeholderOf(+el.dataset.i);if(!p)return;s.kg=p.kg;s.reps=p.reps;save()},
+  copy(_,el){const s=S.active.sets[+el.dataset.i],p=prevOf(+el.dataset.i);if(!p)return;s.kg=p.kg;s.reps=p.reps;save()},
   check(_,el){const i=+el.dataset.i,s=S.active.sets[i];
     if(!s.done){const p=placeholderOf(i);if(s.kg===''&&p)s.kg=p.kg;if(s.reps===''&&p)s.reps=p.reps;
       if(s.kg===''||s.reps==='')return focusEmpty(i,s);
@@ -484,23 +651,35 @@ const act={
   addSet(_,el){const ex=el.dataset.ex,sets=S.active.sets;let last=-1;sets.forEach((s,i)=>{if(s.exId===ex)last=i});
     sets.splice(last+1,0,{exId:ex,type:'W',kg:'',reps:'',rpe:'',done:false});save()},
   finish(){if(ui.confirm!=='finish'){ui.confirm='finish';return}
-    const a=S.active;a.end=Date.now();a.sets=a.sets.filter(s=>s.done).map(({target,...s})=>s);
-    if(a.sets.length)S.workouts.unshift(a);S.active=null;ui.tab='history';stopRest();save();
+    const a=S.active;a.end=Date.now();a.sets=a.sets.filter(s=>s.done).map(({target,tkg,...s})=>s);
+    if(a.sets.length){S.workouts.unshift(a);ui.upd=a.id;ui.updReps=false}S.active=null;ui.tab='history';stopRest();save();
     try{wake&&wake.release()}catch(e){};window.scrollTo(0,0)},
   discard(){if(ui.confirm!=='discard'){ui.confirm='discard';return}S.active=null;stopRest();save()},
   edit(id){ui.edit=id;window.scrollTo(0,0)},
-  newRoutine(){const r={id:uid(),name:'Nová rutina',items:[]};S.routines.push(r);save();ui.edit=r.id},
+  newRoutine(){ui.draft={id:uid(),name:'',items:[]};ui.edit=ui.draft.id;ui.err='';window.scrollTo(0,0)},
   closeEdit(){ui.edit=null},
-  up(_,el){const r=S.routines.find(x=>x.id===ui.edit),i=+el.dataset.i;if(i>0)[r.items[i-1],r.items[i]]=[r.items[i],r.items[i-1]];save()},
-  del(_,el){S.routines.find(x=>x.id===ui.edit).items.splice(+el.dataset.i,1);save()},
+  cancelNew(){ui.draft=null;ui.edit=null;ui.err=''},
+  createRoutine(){const r=ui.draft;if(!r.name.trim()){ui.err='Zadej název rutiny.';return}
+    r.name=r.name.trim();S.routines.push(r);ui.draft=null;ui.edit=null;ui.err='';save();window.scrollTo(0,document.body.scrollHeight)},
+  up(_,el){const r=editR(),i=+el.dataset.i;if(i>0){[r.items[i-1],r.items[i]]=[r.items[i],r.items[i-1]];[i-2,i-1,i].forEach(k=>{if(r.items[k])r.items[k].ss=false})}save()},
+  del(_,el){const its=editR().items,i=+el.dataset.i;if(its[i-1])its[i-1].ss=false;its.splice(i,1);save()},
+  ssToggle(_,el){const it=curItem(el);it.ss=!it.ss;
+    /* první cvik supersérie: krátký přechod na další cvik; po zrušení pauza podle typu cviku */
+    it.rest=it.ss?(it.rest>45?30:it.rest):restFor(exName(it.exId));save()},
   toggleRow(_,el){const row=curItem(el).rows[+el.dataset.j];row.type=row.type==='A'?'W':'A';save()},
   delRow(_,el){curItem(el).rows.splice(+el.dataset.j,1);save()},
   addRow(_,el){const rows=curItem(el).rows,t=el.dataset.t;
-    const same=rows.filter(r=>r.type===t),reps=same.length?same[same.length-1].reps:(t==='A'?'10':'6–10');
+    const same=rows.filter(r=>r.type===t),reps=same.length?same[same.length-1].reps:'8';
     if(t==='A'){let k=0;rows.forEach((r,j)=>{if(r.type==='A')k=j+1});rows.splice(k,0,{type:'A',reps})}else rows.push({type:'W',reps});save()},
   addEx(){const v=$('#newEx').value.trim();if(!v)return;let ex=S.exercises.find(e=>e.name.toLowerCase()===v.toLowerCase());
     if(!ex){ex={id:uid(),name:v};S.exercises.push(ex)}
-    S.routines.find(x=>x.id===ui.edit).items.push({exId:ex.id,rest:120,note:'',rows:defRows('6–10')});save()},
+    editR().items.push({exId:ex.id,rest:120,note:'',rows:defRows('8')});const it=editR().items;it[it.length-1].rest=restFor(ex.name);save()},
+  hevyOpen(){ui.exportMsg='';const f=$('#hevyFile');f.value='';f.click()},
+  hevyYes(){hevyApply(ui.hevy);const n=ui.hevy.fresh.length;ui.hevy=null;ui.exportMsg='Naimportováno '+n+' tréninků z Hevy.';save()},
+  hevyNo(){ui.hevy=null},
+  calMove(_,el){ui.calM+=+el.dataset.d},
+  calDay(id){ui.openW=id;setTimeout(()=>{const e=document.getElementById('w-'+id);e&&e.scrollIntoView({behavior:'smooth',block:'center'})},30)},
+  clearHistory(){if(ui.confirm!=='clearHistory'){ui.confirm='clearHistory';return}S.workouts=[];S.sample=false;ui.upd=null;save()},
   delRoutine(){if(ui.confirm!=='delRoutine'){ui.confirm='delRoutine';return}S.routines=S.routines.filter(x=>x.id!==ui.edit);ui.edit=null;save()},
   exportCsv(){const csv=buildCsv(),fn='historie-treninku-'+localDate()+'.csv';
     ui.exportMsg='';ui.csvText='';ui.dumpExt='.csv';
@@ -525,10 +704,13 @@ const act={
   restore(){ui.exportMsg='';const f=$('#restoreFile');f.value='';f.click()},
   restoreYes(){S=migrate(ui.pending.data);S.active=null;ui.pending=null;save();ui.exportMsg='Data obnovena ze zálohy.'},
   restoreNo(){ui.pending=null},
+  updOpen(id){ui.upd=id;ui.updReps=false;window.scrollTo(0,0)},
+  updYes(){const w=S.workouts.find(x=>x.id===ui.upd),d=w&&routineDiff(w,ui.updReps);if(!d)return;
+    d.r.items.forEach((it,k)=>{it.rows=d.next[k]});ui.upd=null;ui.exportMsg='Rutina '+d.r.name+' je aktualizovaná.';save()},
+  updNo(){ui.upd=null},
   closeCsv(){ui.csvText='';ui.exportMsg=''},
-  moveR(id,el){const d=+el.dataset.d,rs=S.routines,r=rs.find(x=>x.id===id),grp=rs.filter(x=>isActive(x)===isActive(r)),
+  moveR(id,el){const d=+el.dataset.d,rs=S.routines,r=rs.find(x=>x.id===id),grp=rs,
       k=grp.indexOf(r),o=grp[k+d];if(!o)return;const i=rs.indexOf(r),j=rs.indexOf(o);[rs[i],rs[j]]=[rs[j],rs[i]];save()},
-  toggleActive(id){const r=S.routines.find(x=>x.id===(id||ui.edit));r.active=!isActive(r);save()},
   clearSample(){if(ui.confirm!=='clearSample'){ui.confirm='clearSample';return}S.workouts=S.workouts.filter(w=>!w.sample);S.sample=false;save()}
 };
 /* ---------- export CSV ---------- */
@@ -553,14 +735,79 @@ function buildCsv(){
   });
   return '﻿'+lines.join('\r\n');
 }
-function placeholderOf(i){const s=S.active.sets[i],prev=prevFor(s.exId);if(!prev)return null;
+/* hodnoty z minulého tréninku pro sérii i */
+function prevOf(i){const s=S.active.sets[i],prev=prevFor(s.exId);if(!prev)return null;
   let n=0;for(let j=0;j<=i;j++){const t=S.active.sets[j];if(t.exId===s.exId&&t.type===s.type)n++}
   const p=(s.type==='A'?prev.A:prev.W)[n-1];return p?{kg:String(num(p.kg)),reps:String(p.reps)}:null}
+/* předvyplnění: cíl z rutiny, jinak minule */
+/* ---------- import z Hevy (CSV) ---------- */
+function parseCsv(t){const rows=[];let row=[],f='',q=false;
+  for(let i=0;i<t.length;i++){const c=t[i];
+    if(q){if(c==='"'){if(t[i+1]==='"'){f+='"';i++}else q=false}else f+=c}
+    else if(c==='"')q=true;else if(c===','){row.push(f);f=''}
+    else if(c==='\n'||c==='\r'){if(c==='\r'&&t[i+1]==='\n')i++;row.push(f);f='';if(row.length>1||row[0]!=='')rows.push(row);row=[]}
+    else f+=c}
+  if(f!==''||row.length){row.push(f);rows.push(row)}return rows}
+/* "Oct 24, 2026, 5:29 AM" -> čas v místním pásmu */
+function parseHevyDate(v){const m=String(v).match(/([A-Za-z]{3})\w*\s+(\d{1,2}),\s*(\d{4}),?\s+(\d{1,2}):(\d{2})\s*([AP]M)?/i);
+  if(!m){const d=Date.parse(v);return isNaN(d)?null:d}
+  const mo=['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'].indexOf(m[1].toLowerCase());
+  let h=+m[4];if(m[6]){const pm=m[6].toUpperCase()==='PM';if(pm&&h<12)h+=12;if(!pm&&h===12)h=0}
+  return new Date(+m[3],mo,+m[2],h,+m[5]).getTime()}
+/* názvy cviků z Hevy -> názvy v aplikaci */
+const HEVY_MAP={
+ 'bench press (barbell)':'Bench press (osa)','bench press (dumbbell)':'Bench press (jednoručky)',
+ 'shoulder press (dumbbell)':'Shoulder press (jednoručky)','incline bench press (dumbbell)':'Incline bench press (jednoručky)',
+ 'lateral raise (dumbbell)':'Lateral raise (jednoručky)','triceps pushdown':'Triceps pushdown',
+ 'lat pulldown (cable)':'Lat pulldown','seated cable row - bar grip':'Seated cable row (rovná tyč, širší úchop)',
+ 'bicep curl (dumbbell)':'Bicep curl (jednoručky)','face pull':'Face pull','seated incline curl (dumbbell)':'Incline curl',
+ 'standing calf raise (machine)':'Lýtka ve stoji','seated calf raise':'Lýtka v sedu','romanian deadlift (barbell)':'Rumunský mrtvý tah',
+ 'triceps dip (weighted)':'Triceps dip (se zátěží)','seated shoulder press (machine)':'Seated shoulder press (stroj)',
+ 'single arm lateral raise (cable)':'Single arm lateral raise (kladka)','seated cable row - v grip (cable)':'Seated cable row (V-úchop)',
+ 'chest supported incline row (dumbbell)':'Chest-supported DB row','ez bar biceps curl':'EZ bar curl',
+ 'rear delt reverse fly (machine)':'Rear delt reverse fly','hammer curl (dumbbell)':'Hammer curl','leg press (machine)':'Leg press',
+ 'leg extension (machine)':'Předkopávání','seated leg curl (machine)':'Zakopávání v sedu','bulgarian split squat':'Bulharský dřep',
+ 'back extension (weighted hyperextension)':'Hyperextenze na 45° (s jednoručkou)'};
+function hevyPlan(text){
+  const rows=parseCsv(text.replace(/^﻿/,''));if(rows.length<2)throw 0;
+  const h=rows[0].map(x=>x.trim()),ix=n=>h.indexOf(n);
+  const need=['title','start_time','exercise_title','set_index','weight_kg','reps'];if(need.some(n=>ix(n)<0))throw 0;
+  const byKey=new Map();
+  rows.slice(1).forEach(r=>{const g=n=>(r[ix(n)]??'').trim();
+    if(ix('set_type')>=0&&/warmup/i.test(g('set_type')))return;
+    const key=g('title')+'|'+g('start_time');
+    if(!byKey.has(key))byKey.set(key,{name:g('title')||'Trénink',start:parseHevyDate(g('start_time')),end:parseHevyDate(g('end_time')),rows:[]});
+    byKey.get(key).rows.push({ex:g('exercise_title'),i:+g('set_index')||0,kg:g('weight_kg'),reps:g('reps'),rpe:ix('rpe')>=0?g('rpe'):''});
+  });
+  const ws=[...byKey.values()].filter(w=>w.start&&w.rows.length);
+  const have=new Set(S.workouts.map(w=>w.start));
+  const fresh=ws.filter(w=>!have.has(w.start));
+  const exNames=[...new Set(ws.flatMap(w=>w.rows.map(r=>r.ex)))];
+  const target=n=>HEVY_MAP[n.toLowerCase()]||n;
+  const known=exNames.filter(n=>S.exercises.some(e=>e.name.toLowerCase()===target(n).toLowerCase()));
+  return {ws,fresh,dup:ws.length-fresh.length,exNames,known,target,
+    from:Math.min(...ws.map(w=>w.start)),to:Math.max(...ws.map(w=>w.start))};
+}
+function hevyApply(pl){
+  const exId=n=>{const t=pl.target(n);let e=S.exercises.find(x=>x.name.toLowerCase()===t.toLowerCase());
+    if(!e){e={id:uid(),name:t};S.exercises.push(e)}return e.id};
+  pl.fresh.forEach(w=>{
+    const r=S.routines.find(x=>x.name.toLowerCase()===w.name.toLowerCase());
+    const order=[];w.rows.forEach(x=>{if(!order.includes(x.ex))order.push(x.ex)});
+    const sets=order.flatMap(n=>w.rows.filter(x=>x.ex===n).sort((a,b)=>a.i-b.i).map(x=>({exId:exId(n),type:'W',
+      kg:x.kg===''?'':String(num(x.kg)),reps:x.reps===''?'0':String(parseInt(x.reps)||0),rpe:x.rpe&&RPE.includes(String(num(x.rpe)))?String(num(x.rpe)):'',done:true})));
+    S.workouts.push({id:uid(),routineId:r?r.id:null,name:w.name,start:w.start,end:w.end||w.start,sets,src:'hevy'});
+  });
+  S.workouts.sort((a,b)=>b.start-a.start);
+}
+function placeholderOf(i){const s=S.active.sets[i],p=prevOf(i)||{};
+  const kg=s.tkg!==''&&s.tkg!=null?String(s.tkg):p.kg, reps=s.target||p.reps;
+  return kg||reps?{kg:kg||'',reps:reps||''}:null}
 function focusEmpty(i,s){render();const el=$(s.kg===''?'#kg'+i:'#rp'+i);el&&el.focus();}
 
 document.addEventListener('click',e=>{
   const nb=e.target.closest('nav.bottom [data-tab]');
-  if(nb){ui.tab=nb.dataset.tab;ui.confirm=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
+  if(nb){ui.tab=nb.dataset.tab;ui.confirm=null;ui.upd=null;ui.hevy=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
   const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
   const name=b.dataset.act,wasConfirm=ui.confirm;
   act[name](b.dataset.id,b);
@@ -570,10 +817,12 @@ document.addEventListener('click',e=>{
 });
 function onField(e){
   const t=e.target;
+  if(t.id==='updReps'){ui.updReps=t.checked;return render()}
   if(t.dataset.f&&S.active){S.active.sets[+t.dataset.i][t.dataset.f]=t.value.trim();save()}
   if(t.dataset.ef&&ui.edit){const it=curItem(t);it[t.dataset.ef]=t.dataset.ef==='rest'?(parseInt(t.value)||0):t.value;save()}
-  if(t.dataset.rr&&ui.edit){curItem(t).rows[+t.dataset.j].reps=t.value;save()}
-  if(t.id==='rname'){S.routines.find(x=>x.id===ui.edit).name=t.value;save()}
+  if(t.dataset.rk&&ui.edit){const v=cleanKg(t.value);if(t.value!==v)t.value=v;curItem(t).rows[+t.dataset.j].kg=v;save()}
+  if(t.dataset.rr&&ui.edit){const v=cleanReps(t.value);if(t.value!==v)t.value=v;curItem(t).rows[+t.dataset.j].reps=v;save()}
+  if(t.id==='rname'){editR().name=t.value;if(ui.err&&t.value.trim())ui.err='';save()}
 }
 document.addEventListener('change',e=>{
   if(e.target.id!=='restoreFile'||!e.target.files[0])return;
@@ -581,6 +830,12 @@ document.addEventListener('change',e=>{
   fr.onload=()=>{try{const j=JSON.parse(fr.result);
       if(!j||!j.data||!Array.isArray(j.data.routines)||!Array.isArray(j.data.workouts)||!Array.isArray(j.data.exercises))throw 0;
       ui.pending=j;ui.exportMsg=''}catch(err){ui.pending=null;ui.exportMsg='Soubor není platná záloha této aplikace.'}render()};
+  fr.readAsText(e.target.files[0]);
+});
+document.addEventListener('change',e=>{
+  if(e.target.id!=='hevyFile'||!e.target.files[0])return;
+  const fr=new FileReader();
+  fr.onload=()=>{try{ui.hevy=hevyPlan(String(fr.result));ui.exportMsg='';window.scrollTo(0,0)}catch(err){ui.hevy=null;ui.exportMsg='Soubor nevypadá jako export tréninků z Hevy (workouts.csv).'}render()};
   fr.readAsText(e.target.files[0]);
 });
 document.addEventListener('input',onField);
