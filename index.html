@@ -171,6 +171,8 @@ nav.bottom button[aria-current="page"]{color:var(--accent);background:var(--acce
   <button type="button" data-tab="history" id="navH">Historie</button>
 </div></nav>
 <datalist id="exnames"></datalist>
+<input type="file" id="restoreFile" accept=".json,application/json,text/plain,application/octet-stream" hidden>
+<input type="file" id="hevyFile" accept=".csv,text/csv,text/comma-separated-values,application/vnd.ms-excel,text/plain" hidden>
 
 <script>
 const KEY='zelezny-denik-v1';
@@ -547,12 +549,10 @@ function renderHistory(){
   <div class="card stack"><h2>Záloha dat</h2>
     <div class="sub">Celá data aplikace (rutiny, cviky, historie) v jednom souboru JSON. Ulož si ho třeba na Google Disk.</div>
     <div class="row"><button class="btn primary" type="button" data-act="backup">Stáhnout zálohu</button>
-    <button class="btn" type="button" data-act="restore">Obnovit ze zálohy</button></div>
-    <input type="file" id="restoreFile" accept=".json,application/json" hidden></div>
+    <button class="btn" type="button" data-act="restore">Obnovit ze zálohy</button></div></div>
   <div class="card stack"><h2>Import z Hevy</h2>
     <div class="sub">V Hevy dej Nastavení → Export &amp; Import Data → Export Workouts. Stažený soubor workouts.csv sem nahraj. Tréninky se přidají k historii, už naimportované se přeskočí.</div>
-    <div class="row"><button class="btn" type="button" data-act="hevyOpen">Vybrat soubor CSV</button></div>
-    <input type="file" id="hevyFile" accept=".csv,text/csv" hidden></div>
+    <div class="row"><button class="btn" type="button" data-act="hevyOpen">Vybrat soubor CSV</button></div></div>
   </div>`;
 }
 
