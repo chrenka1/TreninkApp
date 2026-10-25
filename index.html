@@ -17,18 +17,18 @@
 :root{
   --bg:#EEF0F2; --surface:#FFFFFF; --fg:#15181C; --muted:#5F6670; --line:#D9DDE2;
   --accent:#1F4FD1; --accent-ink:#FFFFFF; --accent-soft:#E4EAFB;
-  --ok:#1E8A4C; --ok-bg:#E3F3EA; --danger:#B42318;
+  --ok:#1E8A4C; --ok-bg:#E3F3EA; --danger:#B42318; --scrim:rgba(21,24,28,.45);
   --display:"Barlow Condensed","Arial Narrow",system-ui,sans-serif;
   --body:"Source Sans 3",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
   --bg:#0F1215; --surface:#181C21; --fg:#E8EAED; --muted:#98A0AA; --line:#2A3038;
   --accent:#6E92FF; --accent-ink:#0B1020; --accent-soft:#1C2540;
-  --ok:#4CC184; --ok-bg:#13281D; --danger:#F07A6E; color-scheme:dark}}
+  --ok:#4CC184; --ok-bg:#13281D; --danger:#F07A6E; --scrim:rgba(0,0,0,.6); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0F1215; --surface:#181C21; --fg:#E8EAED; --muted:#98A0AA; --line:#2A3038;
   --accent:#6E92FF; --accent-ink:#0B1020; --accent-soft:#1C2540;
-  --ok:#4CC184; --ok-bg:#13281D; --danger:#F07A6E; color-scheme:dark}
+  --ok:#4CC184; --ok-bg:#13281D; --danger:#F07A6E; --scrim:rgba(0,0,0,.6); color-scheme:dark}
 
 *{box-sizing:border-box}
 body{background:var(--bg);color:var(--fg);font-family:var(--body);font-size:16px;line-height:1.4;
@@ -58,6 +58,22 @@ h2{font-family:var(--display);font-size:24px;margin:0;line-height:1.1;text-wrap:
 .btn.next{background:var(--ok);border-color:var(--ok);color:var(--surface)}
 .card.is-next{border-color:var(--ok)}
 .card.upd{gap:16px;padding:18px}
+.wk-btns{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btn.discard{color:var(--danger);border-color:var(--danger);background:transparent}
+.modal{position:fixed;inset:0;z-index:30;background:var(--scrim);display:flex;align-items:flex-start;justify-content:center;
+  padding:max(14vh,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) 16px max(16px,env(safe-area-inset-left,0px))}
+.sheet{width:100%;max-width:440px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px;box-shadow:0 12px 40px rgba(0,0,0,.25)}
+.sheet h2{font-size:22px}
+header.top.wk{flex-wrap:wrap;row-gap:6px;padding-block:10px 8px}
+header.top.wk h1{font-size:26px}
+.mini{flex-basis:100%;display:flex;gap:18px;font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.05em;font-variant-numeric:tabular-nums}
+.mini b{font-family:var(--display);font-size:20px;color:var(--fg);letter-spacing:0;margin-right:2px;text-transform:none}
+body.rpe-on .fin{visibility:hidden}
+.exh{display:flex;align-items:flex-start;gap:10px}
+.exh h2{flex:1;min-width:0}
+.exvol{display:flex;flex-direction:column;align-items:flex-end;text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+.exvol b{font-family:var(--display);font-size:20px;line-height:1.1}
+.exvol span{font-size:12px;color:var(--muted)}
 .cal-head{flex-wrap:nowrap;margin-bottom:10px}
 .cal-head h2{text-transform:capitalize;font-size:22px}
 .cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;text-align:center;font-variant-numeric:tabular-nums}
@@ -207,6 +223,31 @@ function migrate(S){
 function load(){try{const v=localStorage.getItem(KEY);return v?migrate(JSON.parse(v)):null}catch(e){return null}}
 function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
 const exName0=(S,id)=>(S.exercises.find(e=>e.id===id)||{}).name||'';
+/* cílová opakování: jen celé číslo */
+function cleanReps(v){return String(v??'').replace(/\D/g,'').replace(/^0+(?=\d)/,'').slice(0,3)}
+/* převod textu/rozsahu na celé číslo: rozsah -> střed (x,5 se zaokrouhluje nahoru) */
+function midReps(v){const n=String(v??'').match(/\d+/g);if(!n)return '';
+  return String(n.length>1?Math.round((+n[0]+ +n[1])/2):+n[0])}
+function numericReps(S){
+  S.routines.forEach(r=>r.items.forEach(it=>{
+    let perLeg=false;
+    it.rows.forEach(row=>{if(/nohu/i.test(row.reps||''))perLeg=true;row.reps=midReps(row.reps)});
+    if(perLeg&&!/na (každou )?nohu/i.test(it.note||''))it.note=(it.note?it.note+' · ':'')+'Opakování na každou nohu.';
+  }));
+  if(S.active)S.active.sets.forEach(x=>{if(x.target!=null)x.target=midReps(x.target)});
+  S.repsInt=true;
+}
+/* pauza podle typu cviku: izolovaný (malá partie) 90 s, komplexní 150 s */
+const ISO=/zdvih|raise|curl|pushdown|extension|triceps(?! dip)|face pull|lýtk|předkopáv|zakopáv|reverse fly|rozpažov|shrug|hyperextenz/i;
+const isIso=name=>ISO.test(name||'');
+const restFor=name=>isIso(name)?90:150;
+/* první cvik supersérie má jen krátký přechod na druhý cvik – ten se nemění */
+const ssTransition=it=>/Supersérie/i.test(it.note||'')&&it.rest<=45;
+function setRests(S){
+  S.routines.forEach(r=>r.items.forEach(it=>{if(!ssTransition(it))it.rest=restFor(exName0(S,it.exId))}));
+  S.restV=1;
+}
+const isActive=r=>r.active!==false;
 let S=load()||seed();
 /* verze 4: bez aktivačních sérií – před změnou se uloží kopie původních dat */
 function dropActivation(S){
@@ -266,7 +307,7 @@ function prevFor(exId){
   return {date:w.start,A:sets.filter(s=>s.type==='A'),W:sets.filter(s=>s.type==='W')};
 }
 const vol=sets=>sets.filter(s=>s.done).reduce((a,s)=>a+(num(s.kg)||0)*(num(s.reps)||0),0);
-const fmtVol=v=>v>=1000?(v/1000).toLocaleString('cs-CZ',{maximumFractionDigits:1})+' t':Math.round(v)+' kg';
+const fmtVol=v=>v>=1000?(v/1000).toLocaleString('cs-CZ',{minimumFractionDigits:2,maximumFractionDigits:2})+' t':Math.round(v)+' kg';
 const fmtSet=s=>s?`${num(s.kg)??0} × ${s.reps}${s.rpe?' @'+rpeTxt(s.rpe):''}`:'—';
 const kgTxt=v=>String(v).replace('.',',');
 const rowsSummary=it=>{const w=it.rows.filter(r=>r.type==='W');
@@ -336,7 +377,11 @@ function routineDiff(w,takeReps){
     if(before!==after||nr.some((x,k)=>!rows[k]||rows[k].reps!==x.reps||(rows[k].kg||'')!==(x.kg||'')))changes.push(`${exName(it.exId)}: ${before} → ${after}`);
     next.push(nr);
   });
-  return {r,changes,skipped,next};
+  const extra=[...new Set(w.sets.filter(s=>s.type==='W').map(s=>s.exId))].filter(id=>!r.items.some(it=>it.exId===id)).map(id=>{
+    const done=w.sets.filter(s=>s.exId===id&&s.type==='W');
+    const item={exId:id,rest:restFor(exName(id)),note:'',rows:done.map(d=>({type:'W',reps:cleanReps(d.reps)||'8',kg:takeReps?cleanKg(d.kg):''}))};
+    changes.push(`${exName(id)}: nový cvik → ${rowsSummary(item)}`);return item});
+  return {r,changes,skipped,next,extra};
 }
 function renderUpdateCard(){
   const w=S.workouts.find(x=>x.id===ui.upd);if(!w)return '';
@@ -420,12 +465,11 @@ function renderWorkout(){
   const a=S.active, r=S.routines.find(x=>x.id===a.routineId)||{items:[]};
   const exIds=[...new Set(a.sets.map(s=>s.exId))];
   const done=a.sets.filter(s=>s.done).length;
-  $('#app').innerHTML=`<header class="top"><h1>${esc(a.name)}</h1>
-    <button class="btn primary small" type="button" data-act="finish">${ui.confirm==='finish'?'Opravdu dokončit?':'Dokončit'}</button></header>
-  <div class="stats"><div><b id="elapsed">${fmtT((Date.now()-a.start)/1000)}</b><span>čas</span></div>
-    <div><b>${done}/${a.sets.length}</b><span>sérií</span></div><div><b>${fmtVol(vol(a.sets))}</b><span>objem</span></div></div>
+  $('#app').innerHTML=`<header class="top wk"><h1>${esc(a.name)}</h1>
+    <button class="btn primary small fin" type="button" data-act="finish">${ui.confirm==='finish'?'Opravdu dokončit?':'Dokončit'}</button>
+    <div class="mini"><span><b id="elapsed">${fmtT((Date.now()-a.start)/1000)}</b> čas</span><span><b>${done}/${a.sets.length}</b> sérií</span><span><b>${fmtVol(vol(a.sets))}</b> objem</span></div></header>
   <div class="stack">${exIds.map(exId=>{
-    const it=r.items.find(i=>i.exId===exId)||{rows:[],rest:120,note:''};
+    const it=r.items.find(i=>i.exId===exId)||{rows:[],rest:restFor(exName(exId)),note:''};
     const gi=r.items.indexOf(it),g=gi>=0?groupLabels(r.items)[gi]:{lab:'',inSS:false};
     const nextEx=g.inSS&&it.ss&&r.items[gi+1]?exName(r.items[gi+1].exId):'';
     const prev=prevFor(exId);
@@ -443,15 +487,25 @@ function renderWorkout(){
         <button class="chk${s.done?' on':''}" type="button" data-act="check" data-i="${i}" aria-label="Série hotová" aria-pressed="${s.done}">✓</button>`}).join('');
     return `<div class="card ex${g.inSS?' ss':''}">
       ${g.inSS?`<div class="sstag">Supersérie ${g.lab}${nextEx?` · pak hned ${esc(nextEx)}`:''}</div>`:''}
-      <h2>${esc(exName(exId))}</h2>
-      <div class="meta">${esc(rowsSummary(it))} · pauza ${fmtT(it.rest)}${prev?' · minule '+fmtD(prev.date):''}</div>
+      <div class="exh"><h2>${esc(exName(exId))}</h2>
+        <div class="exvol"><b>${fmtVol(vol(a.sets.filter(s=>s.exId===exId&&s.type==='W')))}</b><span>minule ${prev?fmtVol(vol(prev.W)):'—'}</span></div></div>
+      <div class="meta">${it.rows.length?esc(rowsSummary(it))+' · ':'přidaný cvik · '}pauza ${fmtT(it.rest)}${prev?' · minule '+fmtD(prev.date):''}</div>
       ${it.note?`<div class="exnote">${esc(it.note)}</div>`:''}
       ${hit?'<div class="hint">Minule jsi dal horní hranici opakování. Zkus přidat váhu.</div>':''}
       <div class="sets"><span class="h">#</span><span class="h">Minule</span><span class="h">kg</span><span class="h">Opak.</span><span class="h">RPE</span><span class="h"></span>${rows}</div>
       <div class="row addset"><button class="btn small ghost" type="button" data-act="addSet" data-ex="${exId}">+ Série</button></div>
     </div>`}).join('')}
-    <button class="btn danger wide" type="button" data-act="discard">${ui.confirm==='discard'?'Opravdu zahodit trénink?':'Zahodit trénink'}</button>
-  </div>`;
+    <div class="wk-btns"><button class="btn discard" type="button" data-act="discard">${ui.confirm==='discard'?'Opravdu zahodit?':'Zahodit trénink'}</button>
+      <button class="btn primary" type="button" data-act="wkAddOpen">+ Přidat cvik</button></div>
+  </div>
+  ${ui.addOpen?`<div class="modal" data-act="wkAddClose"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="addT">
+    <h2 id="addT">Přidat cvik</h2>
+    <label class="sub" for="wkNewEx">Název cviku</label>
+    <input class="txt" id="wkNewEx" list="exnames" placeholder="Vyber nebo napiš název cviku" autocomplete="off" enterkeyhint="done">
+    ${ui.wkMsg?`<div class="sub" style="color:var(--danger)">${esc(ui.wkMsg)}</div>`:''}
+    <div class="wk-btns"><button class="btn" type="button" data-act="wkAddClose">Zrušit</button><button class="btn primary" type="button" data-act="wkAddEx">Přidat</button></div>
+  </div></div>`:''}`;
+  if(ui.addOpen){const i=$('#wkNewEx');if(i){i.value=ui.addVal||'';setTimeout(()=>i.focus(),30)}}
 }
 
 function renderEditor(){
@@ -507,13 +561,20 @@ const act={
     if(!s.done){const p=placeholderOf(i);if(s.kg===''&&p)s.kg=p.kg;if(s.reps===''&&p)s.reps=p.reps;
       if(s.kg===''||s.reps==='')return focusEmpty(i,s);
       s.done=true;const r=S.routines.find(x=>x.id===S.active.routineId),it=r&&r.items.find(x=>x.exId===s.exId);
-      startRest(s.type==='A'?60:(it?it.rest:120))}else s.done=false;save()},
+      startRest(s.type==='A'?60:(it?it.rest:restFor(exName(s.exId))))}else s.done=false;save()},
   addSet(_,el){const ex=el.dataset.ex,sets=S.active.sets;let last=-1;sets.forEach((s,i)=>{if(s.exId===ex)last=i});
     sets.splice(last+1,0,{exId:ex,type:'W',kg:'',reps:'',rpe:'',done:false});save()},
   finish(){if(ui.confirm!=='finish'){ui.confirm='finish';return}
     const a=S.active;a.end=Date.now();a.sets=a.sets.filter(s=>s.done).map(({target,tkg,...s})=>s);
     if(a.sets.length){S.workouts.unshift(a);ui.upd=a.id;ui.updReps=false}S.active=null;ui.tab='history';stopRest();save();
     try{wake&&wake.release()}catch(e){};window.scrollTo(0,0)},
+  wkAddOpen(){ui.addOpen=true;ui.addVal='';ui.wkMsg=''},
+  wkAddClose(_,el){ui.addOpen=false;ui.wkMsg=''},
+  wkAddEx(){const v=($('#wkNewEx').value||'').trim();ui.addVal=v;ui.wkMsg='';if(!v){ui.wkMsg='Napiš nebo vyber název cviku.';return}
+    let ex=S.exercises.find(e=>e.name.toLowerCase()===v.toLowerCase());if(!ex){ex={id:uid(),name:v};S.exercises.push(ex)}
+    if(S.active.sets.some(x=>x.exId===ex.id)){ui.wkMsg=ex.name+' už v tréninku je. Série přidáš tlačítkem + Série u cviku.';return}
+    for(let k=0;k<3;k++)S.active.sets.push({exId:ex.id,type:'W',target:'',tkg:'',kg:'',reps:'',rpe:'',done:false});ui.addOpen=false;save();
+    setTimeout(()=>{const c=document.querySelectorAll('.card.ex');c.length&&c[c.length-1].scrollIntoView({behavior:'smooth',block:'start'})},30)},
   discard(){if(ui.confirm!=='discard'){ui.confirm='discard';return}S.active=null;stopRest();save()},
   edit(id){ui.edit=id;window.scrollTo(0,0)},
   newRoutine(){ui.draft={id:uid(),name:'',items:[]};ui.edit=ui.draft.id;ui.err='';window.scrollTo(0,0)},
@@ -566,7 +627,7 @@ const act={
   restoreNo(){ui.pending=null},
   updOpen(id){ui.upd=id;ui.updReps=false;window.scrollTo(0,0)},
   updYes(){const w=S.workouts.find(x=>x.id===ui.upd),d=w&&routineDiff(w,ui.updReps);if(!d)return;
-    d.r.items.forEach((it,k)=>{it.rows=d.next[k]});ui.upd=null;ui.exportMsg='Rutina '+d.r.name+' je aktualizovaná.';save()},
+    d.r.items.forEach((it,k)=>{it.rows=d.next[k]});d.extra.forEach(x=>d.r.items.push(x));ui.upd=null;ui.exportMsg='Rutina '+d.r.name+' je aktualizovaná.';save()},
   updNo(){ui.upd=null},
   closeCsv(){ui.csvText='';ui.exportMsg=''},
   moveR(id,el){const d=+el.dataset.d,rs=S.routines,r=rs.find(x=>x.id===id),grp=rs,
@@ -667,8 +728,8 @@ function focusEmpty(i,s){render();const el=$(s.kg===''?'#kg'+i:'#rp'+i);el&&el.f
 
 document.addEventListener('click',e=>{
   const nb=e.target.closest('nav.bottom [data-tab]');
-  if(nb){ui.tab=nb.dataset.tab;ui.confirm=null;ui.upd=null;ui.hevy=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
-  const b=e.target.closest('[data-act]');if(!b||b.disabled)return;
+  if(nb){ui.wkMsg='';ui.tab=nb.dataset.tab;ui.confirm=null;ui.upd=null;ui.hevy=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
+  let b=e.target.closest('[data-act]');if(b&&b.classList.contains('modal')&&e.target!==b)return;if(!b||b.disabled)return;
   const name=b.dataset.act,wasConfirm=ui.confirm;
   act[name](b.dataset.id,b);
   if(wasConfirm!==null&&(wasConfirm===name||ui.confirm===wasConfirm))ui.confirm=null;
@@ -678,6 +739,7 @@ document.addEventListener('click',e=>{
 function onField(e){
   const t=e.target;
   if(t.id==='updReps'){ui.updReps=t.checked;return render()}
+  if(t.id==='wkNewEx'){ui.addVal=t.value;if(ui.wkMsg){ui.wkMsg='';const m=t.nextElementSibling;if(m&&m.classList.contains('sub'))m.remove()}return}
   if(t.dataset.f&&S.active){S.active.sets[+t.dataset.i][t.dataset.f]=t.value.trim();save()}
   if(t.dataset.ef&&ui.edit){const it=curItem(t);it[t.dataset.ef]=t.dataset.ef==='rest'?(parseInt(t.value)||0):t.value;save()}
   if(t.dataset.rk&&ui.edit){const v=cleanKg(t.value);if(t.value!==v)t.value=v;curItem(t).rows[+t.dataset.j].kg=v;save()}
@@ -698,6 +760,13 @@ document.addEventListener('change',e=>{
   fr.onload=()=>{try{ui.hevy=hevyPlan(String(fr.result));ui.exportMsg='';window.scrollTo(0,0)}catch(err){ui.hevy=null;ui.exportMsg='Soubor nevypadá jako export tréninků z Hevy (workouts.csv).'}render()};
   fr.readAsText(e.target.files[0]);
 });
+/* při výběru RPE se skryje tlačítko Dokončit, aby nešlo omylem stisknout */
+document.addEventListener('focusin',e=>{if(e.target.matches&&e.target.matches('select[data-f=rpe]'))document.body.classList.add('rpe-on')});
+document.addEventListener('focusout',e=>{if(e.target.matches&&e.target.matches('select[data-f=rpe]'))setTimeout(()=>{if(!(document.activeElement&&document.activeElement.matches('select[data-f=rpe]')))document.body.classList.remove('rpe-on')},150)});
+document.addEventListener('change',e=>{if(e.target.matches&&e.target.matches('select[data-f=rpe]')){e.target.blur();document.body.classList.remove('rpe-on')}});
+document.addEventListener('keydown',e=>{if(!ui.addOpen)return;
+  if(e.key==='Enter'&&e.target.id==='wkNewEx'){e.preventDefault();act.wkAddEx();render()}
+  if(e.key==='Escape'){ui.addOpen=false;render()}});
 document.addEventListener('input',onField);
 document.addEventListener('change',onField);
 render();
