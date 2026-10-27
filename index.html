@@ -83,6 +83,7 @@ h2{font-family:var(--display);font-size:24px;margin:0;line-height:1.1;text-wrap:
 .tech{margin:0 0 10px;font-size:14px}
 .rvol{display:flex;flex-wrap:wrap;gap:4px 16px;font-size:14px;color:var(--muted);margin-top:6px;font-variant-numeric:tabular-nums}
 .rvol b{color:var(--fg);font-weight:700}
+.lv{color:var(--fg);font-weight:700;font-variant-numeric:tabular-nums}
 .rvol b .sub{font-weight:400;font-size:13px}
 .card.lib{padding:0 14px}
 .lb+.lb{border-top:1px solid var(--line)}
@@ -208,6 +209,7 @@ body.rpe-on .fin{visibility:hidden}
 .prev small{font-size:11.5px;opacity:.85;margin-left:2px}
 .rl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:15px;margin:8px 0 12px;font-variant-numeric:tabular-nums}
 .rl .v{color:var(--muted);text-align:right}
+.rl.rl-only{grid-template-columns:minmax(0,1fr)}
 .erows{display:grid;grid-template-columns:44px minmax(0,1fr) 36px;gap:6px;align-items:center;margin-top:8px}
 .erows .h{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .erows input{min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 10px;width:100%}
@@ -724,7 +726,8 @@ function renderCardioModal(){const c=ui.cardio;if(!c)return '';const items=cardi
   </div></div>`}
 function renderRoutines(){
   const nextId=nextRoutineId(), act=S.routines;
-  const exl=r=>{const g=groupLabels(r.items);return `<div class="rl">${r.items.map((i,k)=>`<span><span class="ssl${g[k].inSS?' on':''}">${g[k].lab}</span>${esc(exName(i.exId))}</span><span class="v">${esc(rowsSummary(i))}</span>`).join('')||'<span class="sub">Bez cviků</span>'}</div>`};
+  /* přehled: jen cviky; série, opakování a váhy jsou v úpravě rutiny */
+  const exl=r=>{const g=groupLabels(r.items);return `<div class="rl rl-only">${r.items.map((i,k)=>`<span><span class="ssl${g[k].inSS?' on':''}">${g[k].lab}</span>${esc(exName(i.exId))}</span>`).join('')||'<span class="sub">Bez cviků</span>'}</div>`};
   const mv=(r,k,len)=>`<button class="iconbtn" type="button" data-act="moveR" data-id="${r.id}" data-d="-1" aria-label="Posunout nahoru" ${k?'':'disabled'}>▲</button>
       <button class="iconbtn" type="button" data-act="moveR" data-id="${r.id}" data-d="1" aria-label="Posunout dolů" ${k<len-1?'':'disabled'}>▼</button>`;
   $('#app').innerHTML=`<header class="top"><h1>Rutiny</h1>
@@ -733,8 +736,7 @@ function renderRoutines(){
     const last=S.workouts.find(w=>w.routineId===r.id), isNext=r.id===nextId;
     return `<div class="card${isNext?' is-next':''}">
       <div class="row"><h2 class="grow">${esc(r.name)}</h2>${isNext?'<span class="chip ok">Na řadě</span>':''}${mv(r,k,act.length)}</div>
-      <div class="sub" style="margin-top:2px">${last?'naposledy '+fmtD(last.start):'zatím necvičeno'}</div>
-      <div class="rvol"><span>Objem plán <b>${planTxt(routinePlan(r))}</b></span>${last?`<span>minule <b>${fmtVol(vol(last.sets.filter(x=>x.type==='W')))}</b></span>`:''}</div>
+      <div class="sub" style="margin-top:2px">${last?`naposledy ${fmtD(last.start)} · objem <b class="lv">${fmtVol(vol(last.sets.filter(x=>x.type==='W')))}</b>`:'zatím necvičeno'}</div>
       ${exl(r)}
       <div class="row"><button class="btn ${isNext?'next':'primary'} grow" type="button" data-act="start" data-id="${r.id}">Začít trénink</button>
       <button class="btn" type="button" data-act="edit" data-id="${r.id}">Upravit</button></div>
