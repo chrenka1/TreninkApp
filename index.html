@@ -210,6 +210,17 @@ body.rpe-on .fin{visibility:hidden}
 .rl{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:4px 12px;font-size:15px;margin:8px 0 12px;font-variant-numeric:tabular-nums}
 .rl .v{color:var(--muted);text-align:right}
 .rl.rl-only{grid-template-columns:minmax(0,1fr)}
+.rhead{display:flex;flex-direction:column;align-items:stretch;gap:3px;width:100%;background:none;border:none;padding:0;text-align:left;color:var(--fg);cursor:pointer}
+.rtop{display:flex;align-items:center;gap:8px}
+.rname{flex:1;min-width:0;font-family:var(--display);font-size:24px;font-weight:700;line-height:1.1}
+.rchev{width:28px;height:28px;flex:none;display:inline-flex;align-items:center;justify-content:center;border-radius:8px;background:var(--bg);border:1px solid var(--line)}
+.rchev::before{content:"";width:8px;height:8px;border-right:2px solid var(--accent);border-bottom:2px solid var(--accent);transform:translateY(-2px) rotate(45deg)}
+.rcard.open .rchev::before{transform:translateY(2px) rotate(-135deg)}
+.rnames{font-size:14px;color:var(--fg);opacity:.85;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;margin-top:3px}
+.rstart{margin-top:12px}
+.rcard.open .rl{margin-top:10px}
+.rmove{margin-top:10px;padding-top:10px;border-top:1px solid var(--line)}
+.took{color:var(--ok);font-weight:600}
 .erows{display:grid;grid-template-columns:44px minmax(0,1fr) 36px;gap:6px;align-items:center;margin-top:8px}
 .erows .h{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .erows input{min-height:38px;border:1px solid var(--line);border-radius:8px;background:var(--bg);padding:0 10px;width:100%}
@@ -296,7 +307,7 @@ const defRows=reps=>[{type:'W',reps},{type:'W',reps}];
 /* nová instalace: žádné rutiny ani tréninky */
 function seed(){
   return {exercises:[],routines:[],workouts:[],active:null,
-    planV:3,repsInt:true,restV:1,namesV:7,ssV:1,delInact:1,histClr:1,noAct:true,catV:2};
+    planV:3,repsInt:true,restV:1,namesV:7,ssV:1,delInact:1,histClr:1,noAct:true,catV:2,rpeNoteV:1,noteDel1:1};
 }
 function migrate(S){
   S.routines.forEach(r=>{delete r.day;r.items.forEach(it=>{
@@ -644,6 +655,17 @@ if(!S.delInact){try{localStorage.setItem(KEY+'-pred-v8',JSON.stringify(S))}catch
 /* jednorázové smazání historie (na přání 24. 10.), se zálohou */
 if(!S.histClr){try{localStorage.setItem(KEY+'-pred-v9',JSON.stringify(S))}catch(e){}S.workouts=[];S.sample=false;S.histClr=1;save()}
 if(!S.catV||S.catV<2){S.exercises.forEach(e=>{if(!e.cat&&!e.custom){const c=catByName(e.name);if(c)e.cat=c.id}});S.catV=2;save()}
+/* verze 10: z poznámek u cviků v rutinách pryč informace o RPE (RPE zůstává jen jako pole v tréninku) */
+function stripRpe(t){return String(t||'')
+  .replace(/Max\.?\s*RPE\s*[\d.,–-]+\s*(·\s*)?/gi,'')
+  .replace(/[,;]?\s*\bRPE\s*\d+(?:[.,]\d)?(?:\s*[–-]\s*\d+(?:[.,]\d)?)?\b[.,]?/gi,'')
+  .replace(/\s{2,}/g,' ').replace(/^\s*[·,.;-]\s*/,'').trim()
+  .replace(/([.!?]\s+)(\p{Ll})/gu,(m,a,b)=>a+b.toUpperCase()).replace(/(\p{L})$/u,'$1.')}
+if(!S.rpeNoteV){try{localStorage.setItem(KEY+'-pred-v10',JSON.stringify(S))}catch(e){}
+  S.routines.forEach(r=>r.items.forEach(it=>{it.note=stripRpe(it.note)}));S.rpeNoteV=1;save()}
+/* jednorázově: smazat poznámku u tricepsových extenzí (na přání 10. 11.) */
+if(!S.noteDel1){const t='Zády ke kladce, lano za hlavou, lokty nahoru a u sebe. Dole nech triceps natáhnout. Alternativa: francouzský tlak s jednoručkou vsedě.';
+  S.routines.forEach(r=>r.items.forEach(it=>{if(it.note){const n=it.note.split(t).join('').replace(/\s*·\s*$/,'').replace(/^\s*·\s*/,'').trim();if(n!==it.note)it.note=n}}));S.noteDel1=1;save()}
 if(!S.noAct){try{localStorage.setItem(KEY+'-pred-v4',JSON.stringify(S))}catch(e){}dropActivation(S);save()}
 const ui={tab:'routines',edit:null,confirm:null};
 
@@ -734,12 +756,18 @@ function renderRoutines(){
     <button class="btn small kbtn" type="button" data-act="cardioOpen">+ Kardio</button><button class="btn small" type="button" data-act="newRoutine">+ Nová rutina</button></header>
   <div class="stack">${act.map((r,k)=>{
     const last=S.workouts.find(w=>w.routineId===r.id), isNext=r.id===nextId;
-    return `<div class="card${isNext?' is-next':''}">
-      <div class="row"><h2 class="grow">${esc(r.name)}</h2>${isNext?'<span class="chip ok">Na řadě</span>':''}${mv(r,k,act.length)}</div>
-      <div class="sub" style="margin-top:2px">${last?`naposledy ${fmtD(last.start)} · objem <b class="lv">${fmtVol(vol(last.sets.filter(x=>x.type==='W')))}</b>`:'zatím necvičeno'}</div>
-      ${exl(r)}
+    /* sbalená karta: název, kdy naposledy, zkrácené názvy cviků (max. 2 řádky) */
+    const open=ui.rOpen&&ui.rOpen.has(r.id),short=r.items.map(i=>exName(i.exId).replace(/\s*\([^)]*\)/g,'')).join(' · ');
+    return `<div class="card rcard${isNext?' is-next':''}${open?' open':''}">
+      <button class="rhead" type="button" data-act="rToggle" data-id="${r.id}" aria-expanded="${open}">
+        <span class="rtop"><span class="rname">${esc(r.name)}</span>${isNext?'<span class="chip ok">Na řadě</span>':''}<span class="rchev" aria-hidden="true"></span></span>
+        <span class="sub">${last?'naposledy '+fmtD(last.start):'zatím necvičeno'}</span>
+        ${open?'':`<span class="rnames">${esc(short)||'Bez cviků'}</span>`}</button>
+      ${open?`${exl(r)}
       <div class="row"><button class="btn ${isNext?'next':'primary'} grow" type="button" data-act="start" data-id="${r.id}">Začít trénink</button>
-      <button class="btn" type="button" data-act="edit" data-id="${r.id}">Upravit</button></div>
+        <button class="btn" type="button" data-act="edit" data-id="${r.id}">Upravit</button></div>
+      <div class="row rmove"><span class="sub grow">Pořadí rutiny</span>${mv(r,k,act.length)}</div>`
+      :(isNext?`<button class="btn next wide rstart" type="button" data-act="start" data-id="${r.id}">Začít trénink</button>`:'')}
     </div>`}).join('')||'<div class="card sub">Zatím žádná rutina. Vytvoř ji tlačítkem + Nová rutina.</div>'}
   </div>${renderCardioModal()}`;
 }
@@ -918,12 +946,13 @@ function renderWorkout(){
       ${techHTML(S.exercises.find(e=>e.id===exId)||{})}
       ${hit?'<div class="hint">Minule jsi dal horní hranici opakování. Zkus přidat váhu.</div>':''}
       <div class="sets"><span class="h">#</span><span class="h">Minule</span><span class="h">kg</span><span class="h">Opak.</span><span class="h">RPE</span><span class="h"></span>${rows}</div>
-      <div class="row addset"><button class="btn small ghost" type="button" data-act="addSet" data-ex="${exId}">+ Série</button></div>
+      <div class="row addset"><button class="btn small ghost" type="button" data-act="addSet" data-ex="${exId}">+ Série</button><span class="grow"></span>
+        ${ui.took===exId?'<span class="sub took">Převzato do rutiny ✓</span>':`<button class="btn small" type="button" data-act="wkTake" data-ex="${exId}">Převzít do rutiny</button>`}</div>
     </div>`}).join('')}
     <div class="wk-btns"><button class="btn discard" type="button" data-act="discard">${ui.confirm==='discard'?'Opravdu zahodit?':'Zahodit trénink'}</button>
       <button class="btn primary" type="button" data-act="pickOpen" data-id="wk">+ Přidat cvik</button></div>
   </div>
-  ${renderPicker()}`;
+  ${renderPicker()}${renderTakeModal()}`;
   afterPickerRender();
 }
 
@@ -1038,6 +1067,24 @@ function renderWEdit(){
     <button class="btn primary wide" type="button" data-act="weSave">Uložit změny</button>
   </div>${renderPicker()}`;afterPickerRender();
 }
+/* ---------- převzetí hodnot cviku z běžícího tréninku do rutiny ---------- */
+/* bere to, co je vidět v polích: zadané hodnoty, jinak předvyplněné (šedé) */
+function takeRows(exId){const a=S.active;
+  return a.sets.map((x,i)=>({x,i})).filter(o=>o.x.exId===exId&&o.x.type==='W').map(({x,i})=>{const ph=placeholderOf(i)||{};
+    return {type:'W',reps:cleanReps(x.reps||ph.reps||'')||'8',kg:cleanKg(x.kg!==''?x.kg:(ph.kg||''))}})}
+function renderTakeModal(){const t=ui.take;if(!t||!S.active)return '';
+  const r=S.routines.find(x=>x.id===S.active.routineId),it=r&&r.items.find(i=>i.exId===t.exId),rows=takeRows(t.exId);
+  const after=rowsSummary({rows});
+  return `<div class="modal" data-act="wkTakeNo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="tkT">
+    <h2 id="tkT">Převzít do rutiny?</h2>
+    ${r?`<div>${esc(exName(t.exId))} · rutina ${esc(r.name)}</div>
+    <div class="chg"><div class="h">Změna v rutině</div>
+      <div class="chg-row"><span>Teď</span><b>${it?esc(rowsSummary(it)):'cvik v rutině není'}</b></div>
+      <div class="chg-row"><span>Nově</span><b>${esc(after)}</b></div></div>
+    <div class="sub">Převezme se počet sérií, opakování a váhy tak, jak je vidíš v polích.${it?'':' Cvik se přidá na konec rutiny.'}</div>
+    <div class="wk-btns"><button class="btn" type="button" data-act="wkTakeNo">Zrušit</button><button class="btn primary" type="button" data-act="wkTakeYes">Převzít</button></div>`
+    :`<div class="sub">Rutina tohoto tréninku už neexistuje.</div><div class="wk-btns"><button class="btn" type="button" data-act="wkTakeNo">Zavřít</button></div>`}
+  </div></div>`}
 function renderEditor(){
   const r=editR(),isNew=!!(ui.draft&&ui.draft.id===r.id);
   $('#app').innerHTML=`<header class="top"><h1>${isNew?'Nová rutina':'Úprava rutiny'}</h1>${isNew
@@ -1147,6 +1194,12 @@ const act={
     if(p.ctx!=='lib'&&exKind(e)==='cardio'){p.err=e.name+' je kardio, do rutiny patří jen posilovací cviky.';return}
     if(pickTaken().has(e.id)){p.err=e.name+' už je přidaný.';return}
     addPicked(e)},
+  wkTake(_,el){ui.take={exId:el.dataset.ex}},
+  wkTakeNo(){ui.take=null},
+  wkTakeYes(){const t=ui.take,r=S.routines.find(x=>x.id===S.active.routineId);if(!t||!r){ui.take=null;return}
+    const rows=takeRows(t.exId);let it=r.items.find(i=>i.exId===t.exId);
+    if(it)it.rows=rows;else{const ex=S.exercises.find(e=>e.id===t.exId)||{name:''};r.items.push({exId:t.exId,rest:restForEx(ex),note:'',rows})}
+    ui.take=null;ui.took=t.exId;save()},
   discard(){if(ui.confirm!=='discard'){ui.confirm='discard';return}S.active=null;stopRest();save()},
   edit(id){ui.edit=id;window.scrollTo(0,0)},
   newRoutine(){ui.draft={id:uid(),name:'',items:[]};ui.edit=ui.draft.id;ui.err='';window.scrollTo(0,0)},
@@ -1167,6 +1220,7 @@ const act={
   hevyOpen(){ui.exportMsg='';const f=$('#hevyFile');f.value='';f.click()},
   hevyYes(){hevyApply(ui.hevy);const n=ui.hevy.fresh.length;ui.hevy=null;ui.exportMsg='Naimportováno '+n+' tréninků z Hevy.';save()},
   hevyNo(){ui.hevy=null},
+  rToggle(id){ui.rOpen=ui.rOpen||new Set();ui.rOpen.has(id)?ui.rOpen.delete(id):ui.rOpen.add(id)},
   calMove(_,el){ui.calM+=+el.dataset.d},
   calF(v){ui.calF=v;ui.openW=null},
   calDay(id){ui.openW=id;setTimeout(()=>{const e=document.getElementById('w-'+id);e&&e.scrollIntoView({behavior:'smooth',block:'center'})},30)},
@@ -1306,7 +1360,7 @@ document.addEventListener('click',e=>{
   const nb=e.target.closest('nav.bottom [data-tab]');
   if(nb){ui.wkMsg='';ui.pick=null;ui.cardio=null;ui.delW=null;ui.tab=nb.dataset.tab;ui.confirm=null;ui.upd=null;ui.hevy=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
   let b=e.target.closest('[data-act]');if(b&&b.classList.contains('modal')&&e.target!==b)return;if(!b||b.disabled)return;
-  const name=b.dataset.act,wasConfirm=ui.confirm;
+  const name=b.dataset.act,wasConfirm=ui.confirm;if(name!=='wkTakeYes')ui.took=null;
   act[name](b.dataset.id,b);
   if(wasConfirm!==null&&(wasConfirm===name||ui.confirm===wasConfirm))ui.confirm=null;
   if(name==='check'&&S.active){const s=S.active.sets[+b.dataset.i];if(!s.done&&(s.kg===''||s.reps===''))return}
@@ -1352,6 +1406,7 @@ document.addEventListener('keydown',e=>{if(!ui.pick)return;
   if(e.key==='Enter'&&e.target.id==='cName'){e.preventDefault();act.pickCreate();render()}});
 document.addEventListener('keydown',e=>{if(ui.delW&&e.key==='Escape'){ui.delW=null;render()}});
 document.addEventListener('keydown',e=>{if(ui.cardio&&e.key==='Escape'){ui.cardio=null;render()}});
+document.addEventListener('keydown',e=>{if(ui.take&&e.key==='Escape'){ui.take=null;render()}});
 /* stav sbalení souhrnu přežije překreslení */
 document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='msum')ui.sumOpen=e.target.open},true);
 document.addEventListener('input',onField);
