@@ -291,7 +291,6 @@ nav.bottom button[aria-current="page"]{color:var(--accent);background:var(--acce
 </div></nav>
 <datalist id="exnames"></datalist>
 <input type="file" id="restoreFile" accept=".json,application/json,text/plain,application/octet-stream" hidden>
-<input type="file" id="hevyFile" accept=".csv,text/csv,text/comma-separated-values,application/vnd.ms-excel,text/plain" hidden>
 
 <script>
 const KEY='zelezny-denik-v1';
@@ -905,7 +904,14 @@ function renderHistory(){
       <div class="row" style="margin-top:12px">${!w.sample&&S.routines.some(r=>r.id===w.routineId)?`<button class="btn small" type="button" data-act="updOpen" data-id="${w.id}">Aktualizovat rutinu podle tréninku</button>`:''}
         <button class="btn small" type="button" data-act="weOpen" data-id="${w.id}">Upravit</button><span class="grow"></span><button class="btn small discard" type="button" data-act="delW" data-id="${w.id}">Smazat trénink</button></div>
     </details>`}).join('')}
-  ${all.length?`<button class="btn danger wide" type="button" data-act="clearHistory">${ui.confirm==='clearHistory'?'Opravdu smazat celou historii?':'Smazat historii'}</button>`:''}
+  ${all.length?`<button class="btn danger wide" type="button" data-act="clrH1">Smazat historii</button>`:''}
+  ${ui.clrH?(()=>{const n=all.length,c=all.filter(isCardio).length,word=cnt(n,'trénink','tréninky','tréninků');return ui.clrH===1
+    ?`<div class="modal" data-act="clrHNo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="chT"><h2 id="chT">Smazat celou historii?</h2>
+      <div>${word}${c?` (z toho ${c} kardio)`:''}</div><div class="sub">Rutiny a cviky zůstanou.</div>
+      <div class="wk-btns"><button class="btn" type="button" data-act="clrHNo">Zrušit</button><button class="btn discard" type="button" data-act="clrH2">Smazat</button></div></div></div>`
+    :`<div class="modal" data-act="clrHNo"><div class="sheet" role="dialog" aria-modal="true" aria-labelledby="chT2"><h2 id="chT2">Opravdu smazat?</h2>
+      <div class="sub" style="color:var(--danger)">${n>=2&&n<=4?'Smažou se':'Smaže se'} ${word}. Zmizí z historie, kalendáře, souhrnu i ze sloupce „Minule“. Vrátit to jde jen ze zálohy.</div>
+      <div class="wk-btns"><button class="btn primary" type="button" data-act="clrHNo">Ponechat</button><button class="btn danger-fill" type="button" data-act="clearHistory">Ano, smazat vše</button></div></div></div>`})():''}
   ${renderCardioModal()}
   ${ui.delW?(()=>{const w=S.workouts.find(x=>x.id===ui.delW.id);if(!w)return '';const t=`${esc(w.name)} · ${fmtD(w.start)}`;
     return ui.delW.step===1
@@ -919,9 +925,6 @@ function renderHistory(){
     <div class="sub">Celá data aplikace (rutiny, cviky, historie) v jednom souboru JSON. Ulož si ho třeba na Google Disk.</div>
     <div class="row"><button class="btn primary" type="button" data-act="backup">Stáhnout zálohu</button>
     <button class="btn" type="button" data-act="restore">Obnovit ze zálohy</button></div></div>
-  <div class="card stack"><h2>Import z Hevy</h2>
-    <div class="sub">V Hevy dej Nastavení → Export &amp; Import Data → Export Workouts. Stažený soubor workouts.csv sem nahraj. Tréninky se přidají k historii, už naimportované se přeskočí.</div>
-    <div class="row"><button class="btn" type="button" data-act="hevyOpen">Vybrat soubor CSV</button></div></div>
   </div>`;
 }
 
@@ -1251,7 +1254,10 @@ const act={
   delWNo(){ui.delW=null},
   delWYes(){const id=ui.delW&&ui.delW.id;if(!id)return;S.workouts=S.workouts.filter(w=>w.id!==id);
     if(ui.upd===id)ui.upd=null;if(ui.openW===id)ui.openW=null;ui.delW=null;ui.exportMsg='Trénink je smazaný.';save()},
-  clearHistory(){if(ui.confirm!=='clearHistory'){ui.confirm='clearHistory';return}S.workouts=[];S.sample=false;ui.upd=null;save()},
+  clrH1(){ui.clrH=1},
+  clrH2(){ui.clrH=2},
+  clrHNo(){ui.clrH=0},
+  clearHistory(){if(ui.clrH!==2)return;S.workouts=[];S.sample=false;ui.upd=null;ui.clrH=0;ui.openW=null;ui.exportMsg='Historie je smazaná.';save();window.scrollTo(0,0)},
   delRoutine(){if(ui.confirm!=='delRoutine'){ui.confirm='delRoutine';return}S.routines=S.routines.filter(x=>x.id!==ui.edit);ui.edit=null;save()},
   exportCsv(){const csv=buildCsv(),fn='historie-treninku-'+localDate()+'.csv';
     ui.exportMsg='';ui.csvText='';ui.dumpExt='.csv';
@@ -1383,7 +1389,7 @@ function focusEmpty(i,s){render();const el=$(s.kg===''?'#kg'+i:'#rp'+i);el&&el.f
 
 document.addEventListener('click',e=>{
   const nb=e.target.closest('nav.bottom [data-tab]');
-  if(nb){ui.wkMsg='';ui.pick=null;ui.cardio=null;ui.delW=null;ui.tab=nb.dataset.tab;ui.confirm=null;ui.upd=null;ui.hevy=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
+  if(nb){ui.clrH=0;ui.wkMsg='';ui.pick=null;ui.cardio=null;ui.delW=null;ui.tab=nb.dataset.tab;ui.confirm=null;ui.upd=null;ui.hevy=null;ui.exportMsg='';ui.csvText='';window.scrollTo(0,0);return render()}
   let b=e.target.closest('[data-act]');if(b&&b.classList.contains('modal')&&e.target!==b)return;if(!b||b.disabled)return;
   const name=b.dataset.act,wasConfirm=ui.confirm;if(name!=='wkTakeYes')ui.took=null;
   act[name](b.dataset.id,b);
@@ -1435,6 +1441,7 @@ document.addEventListener('keydown',e=>{if(!ui.pick)return;
 document.addEventListener('keydown',e=>{if(ui.delW&&e.key==='Escape'){ui.delW=null;render()}});
 document.addEventListener('keydown',e=>{if(ui.cardio&&e.key==='Escape'){ui.cardio=null;render()}});
 document.addEventListener('keydown',e=>{if(ui.take&&e.key==='Escape'){ui.take=null;render()}});
+document.addEventListener('keydown',e=>{if(ui.clrH&&e.key==='Escape'){ui.clrH=0;render()}});
 /* stav sbalení souhrnu přežije překreslení */
 document.addEventListener('toggle',e=>{if(e.target&&e.target.id==='msum')ui.sumOpen=e.target.open;if(e.target&&e.target.dataset&&e.target.dataset.techWrap)ui.techOpen=e.target.open?e.target.dataset.techWrap:(ui.techOpen===e.target.dataset.techWrap?null:ui.techOpen)},true);
 document.addEventListener('focusin',e=>{const t=e.target;
